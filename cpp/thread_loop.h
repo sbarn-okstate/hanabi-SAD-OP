@@ -7,7 +7,7 @@
 #pragma once
 
 #include "rela/thread_loop.h"
-#include <stream>
+#include <fstream>
 
 class HanabiVDNThreadLoop : public rela::ThreadLoop {
  public:
