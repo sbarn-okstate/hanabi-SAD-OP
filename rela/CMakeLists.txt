@@ -15,8 +15,8 @@ list(APPEND CMAKE_PREFIX_PATH ${TorchPath})
 
 
 # find packages & third_party
-find_package(PythonInterp 3.7 REQUIRED)
-find_package(PythonLibs 3.7 REQUIRED)
+find_package(Python REQUIRED COMPONENTS Interpreter Development)
+link_directories(${Python_LIBRARIES})
 find_package(Torch REQUIRED)
 
 
