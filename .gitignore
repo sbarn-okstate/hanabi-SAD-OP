@@ -1,1 +1,20 @@
+build/*
+CMakeFiles
+CMakeCache.txt
+Makefile
 *.pyc
+*.cmake
+*.so
+*.o
+*.o.d
+*.a
+
+# Ignore all build artifacts in the 'examples' subfolder
+examples/CMakeFiles/
+examples/CMakeCache.txt
+examples/*.cmake
+examples/*.o
+examples/*.a
+examples/*.so
+examples/*.out
+examples/game_example
