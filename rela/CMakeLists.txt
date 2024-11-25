@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -Wno-register -fPIC -march=native -Wfatal-errors")
+  "${CMAKE_CXX_FLAGS} -O2 -Wall -Wextra -Wno-register -fPIC -march=native -Wfatal-errors")
 
 
 # get and append paths for finding dep
@@ -20,9 +20,9 @@ find_package(PythonLibs 3.7 REQUIRED)
 find_package(Torch REQUIRED)
 
 
-add_subdirectory(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/pybind11 third_party/pybind11
-)
+#add_subdirectory(
+#  ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/pybind11 third_party/pybind11
+#)
 
 
 # lib for other c++ programs
