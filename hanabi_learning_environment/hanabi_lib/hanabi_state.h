@@ -25,6 +25,9 @@
 #include "hanabi_history_item.h"
 #include "hanabi_move.h"
 
+#include <iostream>
+#include <sstream>
+
 namespace hanabi_learning_env {
 
 constexpr int kChancePlayerId = -1;
@@ -43,6 +46,26 @@ class HanabiState {
       return card_count_[CardToIndex(color, rank)];
     }
 
+    std::vector<std::string> DeckHistory(std::mt19937* rng) {
+      // std::cout << "before dealing all: " << deck_history_.size() << std::endl;
+      // deal all cards to finish a deck
+      while (!Empty()) {
+        DealCard(rng);
+      }
+      // std::cout << "after dealing all: " << deck_history_.size() << std::endl;
+      const char colornames[] = "roygb";
+      std::vector<std::string> deck;
+      for (auto i : deck_history_) {
+        char color = colornames[IndexToColor(i)];
+        int value = IndexToRank(i) + 1;
+        std::stringstream ss;
+        ss << value << color;
+        deck.push_back(ss.str());
+      }
+
+      return deck;
+    }
+
    private:
     int CardToIndex(int color, int rank) const {
       return color * num_ranks_ + rank;
@@ -56,6 +79,7 @@ class HanabiState {
     std::vector<int> card_count_;
     int total_count_ = -1;  // Total number of cards available to be dealt out.
     int num_ranks_ = -1;    // From game.NumRanks(), used to map card to index.
+    std::vector<int> deck_history_;
   };
 
   enum EndOfGameType {
@@ -68,7 +92,7 @@ class HanabiState {
   // Construct a HanabiState, initialised to the start of the game.
   // If start_player >= 0, the game-provided start player is overridden
   // and the first player after chance is start_player.
-  explicit HanabiState(HanabiGame* parent_game, int start_player = -1);
+  explicit HanabiState(const HanabiGame* parent_game, int start_player = -1);
   // Copy constructor for recursive game traversals using copy + apply-move.
   HanabiState(const HanabiState& state) = default;
 
@@ -99,13 +123,17 @@ class HanabiState {
   int InformationTokens() const { return information_tokens_; }
   const std::vector<HanabiHand>& Hands() const { return hands_; }
   const std::vector<int>& Fireworks() const { return fireworks_; }
-  HanabiGame* ParentGame() const { return parent_game_; }
+  const HanabiGame* ParentGame() const { return parent_game_; }
   const HanabiDeck& Deck() const { return deck_; }
   // Get the discard pile (the element at the back is the most recent discard.)
   const std::vector<HanabiCard>& DiscardPile() const { return discard_pile_; }
   // Sequence of moves from beginning of game. Stored as <move, actor>.
   const std::vector<HanabiHistoryItem>& MoveHistory() const {
     return move_history_;
+  }
+
+  std::vector<std::string> DeckHistory() {
+    return deck_.DeckHistory(parent_game_->rng());
   }
 
  private:
@@ -128,7 +156,7 @@ class HanabiState {
   void DecrementInformationTokens();
   void DecrementLifeTokens();
 
-  HanabiGame* parent_game_ = nullptr;
+  const HanabiGame* parent_game_ = nullptr;
   HanabiDeck deck_;
   // Back element of discard_pile_ is most recently discarded card.
   std::vector<HanabiCard> discard_pile_;

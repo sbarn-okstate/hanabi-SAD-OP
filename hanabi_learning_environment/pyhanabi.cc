@@ -315,9 +315,9 @@ void StateParentGame(pyhanabi_state_t* state, pyhanabi_game_t* dest_game) {
   REQUIRE(state != nullptr);
   REQUIRE(state->state != nullptr);
   REQUIRE(dest_game != nullptr);
-  dest_game->game =
-      reinterpret_cast<hanabi_learning_env::HanabiState*>(state->state)
-      ->ParentGame();
+  dest_game->game = const_cast<hanabi_learning_env::HanabiGame*>(
+      reinterpret_cast<const hanabi_learning_env::HanabiState*>(state->state)
+          ->ParentGame());
 }
 
 void StateApplyMove(pyhanabi_state_t* state, pyhanabi_move_t* move) {
@@ -847,7 +847,7 @@ char* EncodeObservation(pyhanabi_observation_encoder_t* encoder,
       encoder->encoder);
   auto obs = reinterpret_cast<hanabi_learning_env::HanabiObservation*>(
       observation->observation);
-  std::vector<int> encoding = obs_enc->Encode(*obs);
+  std::vector<float> encoding = obs_enc->Encode(*obs);
   std::string obs_str = "";
   for (int i = 0; i < encoding.size(); i++) {
     obs_str += (encoding[i] ? "1" : "0");
