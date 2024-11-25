@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 3.12)
 project (hanalearn)
 
-set(CMAKE_C_FLAGS "-O2 -std=c++11 -fPIC")
+set(CMAKE_C_FLAGS "-O2 -std=c++17 -fPIC")
 set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -O2 -std=c++11 -Wall -Wextra -Wno-register -fPIC -march=native -Wfatal-errors")
+    "${CMAKE_CXX_FLAGS} -O2 -std=c++17 -Wall -Wextra -Wno-register -fPIC -march=native -Wfatal-errors")
 
 set(PYBIND11_FINDPYTHON ON)
 set(pybind11_DIR "/usr/local/lib/python3.10/dist-packages/pybind11/share/cmake/pybind11")
