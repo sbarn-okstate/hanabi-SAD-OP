@@ -6,7 +6,7 @@
 //
 #pragma once
 
-#include pybind11
+#include <pybind11/pybind11.h>
 
 #include "rela/types.h"
 
