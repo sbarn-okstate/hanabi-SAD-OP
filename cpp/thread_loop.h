@@ -7,7 +7,8 @@
 #pragma once
 
 #include "rela/thread_loop.h"
-#include <fstream>
+#include <stream>
+
 class HanabiVDNThreadLoop : public rela::ThreadLoop {
  public:
   HanabiVDNThreadLoop(std::shared_ptr<rela::Actor> actor,
