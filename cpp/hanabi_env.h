@@ -6,9 +6,9 @@
 //
 #pragma once
 
-#include "hanabi-learning-environment/hanabi_lib/hanabi_game.h"
-#include "hanabi-learning-environment/hanabi_lib/hanabi_state.h"
-#include "hanabi-learning-environment/hanabi_lib/canonical_encoders.h"
+#include "hanabi_learning_environment/hanabi_lib/hanabi_game.h"
+#include "hanabi_learning_environment/hanabi_lib/hanabi_state.h"
+#include "hanabi_learning_environment/hanabi_lib/canonical_encoders.h"
 
 #include "rela/env.h"
 
