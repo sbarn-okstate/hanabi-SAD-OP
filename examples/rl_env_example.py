@@ -53,14 +53,18 @@ class Runner(object):
           else:
             assert action is None
         # Make an environment step.
+        print('observations: {}'.format(observation))  
+
         print('Agent: {} action: {}'.format(observation['current_player'],
                                             current_player_action))
         observations, reward, done, unused_info = self.environment.step(
             current_player_action)
+        print('reward: {}'.format(reward))
         episode_reward += reward
+        print('current reward: {}'.format(episode_reward)) 
       rewards.append(episode_reward)
       print('Running episode: %d' % episode)
-      print('Max Reward: %.3f' % max(rewards))
+      print('Max Reward (0 if bombed out): %.3f' % max(rewards))
     return rewards
 
 if __name__ == "__main__":
