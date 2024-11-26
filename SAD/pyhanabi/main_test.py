@@ -1,3 +1,6 @@
+from __future__ import print_function
+
+import numpy as np
 import sys
 import os
 
@@ -63,9 +66,24 @@ def parse_args():
 
     args = parser.parse_args()
     return args
+    """Example code demonstrating the Python Hanabi interface."""
 
 
 if __name__ == "__main__":
         # Parse arguments (replace with your preferred argument parser)
     args = parse_args()
-    print(args)
+    assert pyhanabi.cdef_loaded(), "cdef failed to load"
+    assert pyhanabi.lib_loaded(), "lib failed to load"
+    
+    # Create directories
+    if not os.path.exists(args.save_dir):
+        os.makedirs(args.save_dir)
+
+    # Logger setup
+    logger_path = os.path.join(args.save_dir, "train.log")
+    sys.stdout = common_utils.Logger(logger_path)
+    saver = common_utils.TopkSaver(args.save_dir, 10)
+
+
+
+
