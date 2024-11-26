@@ -2,7 +2,7 @@ import time
 import tensorflow as tf
 import numpy as np
 from create_envs import *  # Placeholder for environment setup utilities
-
+import hanabi_env
 
 class Tachometer:
     def __init__(self):
@@ -64,7 +64,7 @@ def to_device(batch, device):
 
 
 def get_game_info(num_player, greedy_extra):
-    game = hanalearn.HanabiEnv({"players": str(num_player)}, -1, greedy_extra, False)
+    game = HanabiEnv({"players": str(num_player)}, -1, greedy_extra, False)
 
     info = {"input_dim": game.feature_size(), "num_action": game.num_action()}
     return info
