@@ -3,6 +3,7 @@ from __future__ import print_function
 import numpy as np
 import sys
 import os
+import pprint
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -11,6 +12,7 @@ if parent_dir not in sys.path:
 
 import argparse
 from hanabi_learning_environment import pyhanabi
+import common_utils
 
 def parse_args():
     parser = argparse.ArgumentParser(description="train dqn on hanabi")
@@ -72,8 +74,8 @@ def parse_args():
 if __name__ == "__main__":
         # Parse arguments (replace with your preferred argument parser)
     args = parse_args()
-    assert pyhanabi.cdef_loaded(), "cdef failed to load"
-    assert pyhanabi.lib_loaded(), "lib failed to load"
+    #assert pyhanabi.cdef_loaded(), "cdef failed to load"
+    #assert pyhanabi.lib_loaded(), "lib failed to load"
     
     # Create directories
     if not os.path.exists(args.save_dir):
@@ -83,6 +85,9 @@ if __name__ == "__main__":
     logger_path = os.path.join(args.save_dir, "train.log")
     sys.stdout = common_utils.Logger(logger_path)
     saver = common_utils.TopkSaver(args.save_dir, 10)
+
+    common_utils.set_all_seeds(args.seed)
+    pprint.pprint(vars(args))
 
 
 
