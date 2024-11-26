@@ -1,14 +1,15 @@
 from __future__ import print_function
 
-import numpy as np
-import sys
-import os
-import pprint
-
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
+
+import numpy as np
+import sys
+import os
+import pprint
+import utils
 
 import argparse
 from hanabi_learning_environment import pyhanabi
@@ -89,6 +90,7 @@ if __name__ == "__main__":
     common_utils.set_all_seeds(args.seed)
     pprint.pprint(vars(args))
 
+    game_info = utils.get_game_info(args.num_player, args.greedy_extra)
 
 
 
