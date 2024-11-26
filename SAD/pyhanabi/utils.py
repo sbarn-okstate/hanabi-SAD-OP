@@ -2,7 +2,7 @@ import time
 import tensorflow as tf
 import numpy as np
 from create_envs import *  # Placeholder for environment setup utilities
-import hanabi_env
+from hanabi_env import *
 
 class Tachometer:
     def __init__(self):

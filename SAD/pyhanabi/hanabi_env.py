@@ -1,11 +1,11 @@
 import numpy as np
 import tensorflow as tf
 from hanabi_learning_environment import pyhanabi
-from hanabi_learning_environment.hanabi_lib import canonical_encoders
+
 class HanabiEnv:
     def __init__(self, game_params, max_len, greedy_extra, verbose):
-        self.game = HanabiGame(game_params)
-        self.obs_encoder = CanonicalObservationEncoder(self.game)
+        self.game = pyhanabi.HanabiGame(game_params)
+        self.obs_encoder = pyhanabi.CanonicalObservationEncoder(self.game)
         self.state = None
         self.max_len = max_len
         self.num_step = 0
@@ -18,7 +18,7 @@ class HanabiEnv:
                 print(f"  {key}={value}")
 
     def feature_size(self):
-        size = self.obs_encoder.shape[0]
+        size = self.obs_encoder.Shape()[0]
         if self.greedy_extra:
             size += HanabiLearningEnv.LastActionSectionLength(self.game)
         return size
