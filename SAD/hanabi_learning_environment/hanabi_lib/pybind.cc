@@ -11,9 +11,10 @@
 #include "canonical_encoders.h"
 
 namespace py = pybind11;
+namespace hle = hanabi_learning_env;
 
 PYBIND11_MODULE(hanabi, m) {
-    py::class_<CanonicalObservationEncoder>(m, "CanonicalObservationEncoder")
+    py::class_<hle::CanonicalObservationEncoder>(m, "CanonicalObservationEncoder")
         .def(py::init<>())
-        .def("Shape", &CanonicalObservationEncoder::Shape);
+        .def("Shape", &hle::CanonicalObservationEncoder::Shape);
 }
