@@ -20,7 +20,7 @@ import enum
 import sys
 
 DEFAULT_CDEF_PREFIXES = (None, ".", os.path.dirname(__file__), "/include")
-DEFAULT_LIB_PREFIXES = (None, ".", os.path.dirname(__file__), "/lib", '/content/hanabi-SAD-OP/build/hanabi_learning_environment')
+DEFAULT_LIB_PREFIXES = (None, ".", os.path.dirname(__file__), "/lib", '/content/hanabi-SAD-OP/SAD/build/hanabi_learning_environment')
 PYHANABI_HEADER = "pyhanabi.h"
 PYHANABI_LIB = ["libpyhanabi.so", "libpyhanabi.dylib"]
 COLOR_CHAR = ["R", "Y", "G", "W", "B"]  # consistent with hanabi_lib/util.cc
