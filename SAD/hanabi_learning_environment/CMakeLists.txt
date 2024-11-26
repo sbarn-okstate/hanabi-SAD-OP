@@ -10,8 +10,9 @@ add_library(pyhanabi MODULE pybind.cpp)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/hanabi_lib)
 
-target_link_libraries(hanabi_lib PUBLIC pybind11::module)
 target_include_directories(hanabi_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/hanabi_lib)
+target_link_libraries(hanabi_lib PUBLIC pybind11::module)
+
 
 add_library (pyhanabi SHARED pyhanabi.cc)
 target_link_libraries (pyhanabi PUBLIC hanabi)
