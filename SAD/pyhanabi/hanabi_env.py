@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from hanabi_learning_environment import pyhanabi
+from hanabi_learning_environment.hanabi_lib import canonical_encoders
 class HanabiEnv:
     def __init__(self, game_params, max_len, greedy_extra, verbose):
         self.game = HanabiGame(game_params)
