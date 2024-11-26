@@ -5,12 +5,6 @@ set_path.append_sys_path()
 import os
 import pprint
 import tensorflow as tf
-import hanalearn_tf as hanalearn
-import rela_tf as rela
-
-# Verify that the TensorFlow-based modules are loaded
-assert rela.__file__.endswith(".py")
-assert hanalearn.__file__.endswith(".py")
 
 
 def create_train_env(
