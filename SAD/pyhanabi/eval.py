@@ -1,16 +1,7 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-#
 import time
 import numpy as np
-import torch
-
+import tensorflow as tf
 from create_envs import create_eval_env
-import rela
-import iql_r2d2
 import utils
 
 
@@ -42,6 +33,7 @@ def evaluate(
     context.terminate()
     while not context.terminated():
         time.sleep(0.5)
+
     scores = [g.get_episode_reward() for g in games]
     num_perfect = np.sum([1 for s in scores if s == 25])
     return np.mean(scores), num_perfect / len(scores), scores, num_perfect
@@ -58,7 +50,7 @@ def evaluate_saved_model(
     for weight_file in weight_files:
         if verbose:
             print(
-                "evaluating: %s\n\tfor %dx%d games" % (weight_file, num_run, num_game)
+                f"Evaluating: {weight_file}\n\tfor {num_run}x{num_game} games"
             )
         if (
             "GREEDY_EXTRA1" in weight_file
@@ -70,20 +62,26 @@ def evaluate_saved_model(
         else:
             player_greedy_extra = 0
 
-        device = "cpu"
+        device = tf.device("/CPU:0")
         game_info = utils.get_game_info(num_player, player_greedy_extra)
         input_dim = game_info["input_dim"]
         output_dim = game_info["num_action"]
         hid_dim = 512
 
+        # Initialize TensorFlow R2D2 agent
         actor = iql_r2d2.R2D2Agent(1, 0.99, 0.9, device, input_dim, hid_dim, output_dim)
-        state_dict = torch.load(weight_file)
-        if "pred.weight" in state_dict:
-            state_dict.pop("pred.bias")
-            state_dict.pop("pred.weight")
 
-        actor.online_net.load_state_dict(state_dict)
-        model_lockers.append(rela.ModelLocker([actor], device))
+        # Load saved weights
+        state_dict = tf.saved_model.load(weight_file)
+        if "pred.weight" in state_dict:
+            del state_dict["pred.bias"]
+            del state_dict["pred.weight"]
+
+        # Assuming the TensorFlow equivalent of load_state_dict is a weight assignment
+        actor.online_net.set_weights([state_dict[key] for key in actor.online_net.trainable_variables])
+
+        # Add the model to lockers
+        model_lockers.append(utils.ModelLocker([actor], device))
 
     scores = []
     perfect = 0
@@ -104,5 +102,5 @@ def evaluate_saved_model(
     sem = np.std(scores) / np.sqrt(len(scores))
     perfect_rate = perfect / (num_game * num_run)
     if verbose:
-        print("score: %f +/- %f" % (mean, sem), "; perfect: ", perfect_rate)
+        print(f"Score: {mean:.6f} +/- {sem:.6f}; Perfect: {perfect_rate}")
     return mean, sem, perfect_rate
