@@ -1,9 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-#
 import os
 import numpy as np
 import os
@@ -14,7 +8,7 @@ import time
 
 # Placeholder imports for utility functions
 from utils import get_game_info, generate_actor_eps, Tachometer
-from replay_buffer import ReplayBuffer
+from rela import PrioritizedReplay
 import vdn_r2d2
 import iql_r2d2
 from create_envs import create_train_env, create_eval_env  # Environment setup and evaluation
@@ -140,11 +134,12 @@ if __name__ == "__main__":
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, epsilon=args.eps)
 
     # Replay buffer
-    replay_buffer = ReplayBuffer(
-        buffer_size=args.replay_buffer_size,
+    replay_buffer = PrioritizedReplay(
+        capacity=args.replay_buffer_size,
         seed=args.seed,
-        priority_exponent=args.priority_exponent,
-        priority_weight=args.priority_weight,
+        alpha=args.priority_exponent,
+        beta=args.priority_weight,
+        prefetch=args.prefetch
     )
 
     # Actor epsilon values
@@ -182,8 +177,9 @@ if __name__ == "__main__":
             if num_update % args.num_update_between_sync == 0:
                 agent.sync_target_with_online()
 
-            # Sample from replay buffer
-            batch, weights = replay_buffer.sample(args.batchsize)
+            # Sample from replay buffer (PrioritizedReplay)
+            batch, weights, sampledIds = replay_buffer.sample(args.batchsize, args.train_device)
+            
             with tf.GradientTape() as tape:
                 loss, priorities = agent.loss(batch)
                 weighted_loss = tf.reduce_mean(loss * weights)
@@ -194,7 +190,7 @@ if __name__ == "__main__":
             optimizer.apply_gradients(zip(grads, agent.trainable_variables))
 
             # Update priorities in replay buffer
-            replay_buffer.update_priority(priorities.numpy())
+            replay_buffer.updatePriority(priorities.numpy())
 
             # Log statistics
             stat["loss"].feed(weighted_loss.numpy())
