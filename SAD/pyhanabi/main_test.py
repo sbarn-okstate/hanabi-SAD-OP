@@ -1,5 +1,5 @@
 import argparse
-
+from hanabi_learning_environment import pyhanabi
 
 def parse_args():
     parser = argparse.ArgumentParser(description="train dqn on hanabi")
