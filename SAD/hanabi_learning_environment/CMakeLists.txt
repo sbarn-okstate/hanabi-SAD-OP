@@ -3,6 +3,8 @@ project (pyhanabi)
 set(CMAKE_C_FLAGS "-O2 -std=c++17 -fPIC")
 set(CMAKE_CXX_FLAGS "-O2 -std=c++17 -Wall -Wextra -fPIC -Wno-sign-compare")
 
+set(PYBIND11_FINDPYTHON ON)
+set(pybind11_DIR "/usr/local/lib/python3.10/dist-packages/pybind11/share/cmake/pybind11")
 find_package(pybind11 REQUIRED)
 add_library(pyhanabi MODULE pybind.cpp)
 
