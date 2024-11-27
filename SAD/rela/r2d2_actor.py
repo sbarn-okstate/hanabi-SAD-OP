@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from collections import deque
+from rela.actor import Actor
 
 class R2D2TransitionBuffer:
     def __init__(self, batch_size, num_players, multi_step, seq_len):
@@ -80,7 +81,7 @@ class R2D2TransitionBuffer:
         return batch_transition, tf.stack(batch_seq_priority, axis=0), tf.convert_to_tensor(batch_len, dtype=tf.float32)
 
 
-class R2D2Actor:
+class R2D2Actor(Actor):
     def __init__(self, model_locker, multi_step, batch_size, gamma, seq_len, greedy_eps, num_players, replay_buffer=None):
         self.model_locker = model_locker
         self.batch_size = batch_size
