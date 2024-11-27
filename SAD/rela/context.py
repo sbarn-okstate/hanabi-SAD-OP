@@ -34,7 +34,7 @@ class Context:
         Start all threads in the context.
         """
         for i, loop in enumerate(self._loops):
-            thread = threading.Thread(target=loop.mainLoop)
+            thread = threading.Thread(target=loop.main_loop)
             self._threads.append(thread)
             thread.start()
         self._started = True
