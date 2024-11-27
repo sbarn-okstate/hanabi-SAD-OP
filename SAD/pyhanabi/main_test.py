@@ -13,6 +13,7 @@ import utils
 import argparse
 from hanabi_learning_environment import pyhanabi
 import common_utils
+import vdn_r2d2
 
 def parse_args():
     parser = argparse.ArgumentParser(description="train dqn on hanabi")
@@ -91,5 +92,14 @@ if __name__ == "__main__":
 
     game_info = utils.get_game_info(args.num_player, args.greedy_extra)
 
+    if args.method == "vdn":
+        agent = R2D2Agent(
+            args.multi_step,
+            args.gamma,
+            0.9,
+            game_info["input_dim"],
+            args.rnn_hid_dim,
+            game_info["num_action"],
+        )
 
 
