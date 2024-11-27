@@ -10,10 +10,13 @@ if parent_dir not in sys.path:
 import numpy as np
 import pprint
 import utils
+from utils import *
 import argparse
 from hanabi_learning_environment import pyhanabi
 import common_utils
-import vdn_r2d2
+from create_envs import *
+from vdn_r2d2 import *
+from rela.prioritized_replay import *
 
 def parse_args():
     parser = argparse.ArgumentParser(description="train dqn on hanabi")
@@ -93,7 +96,7 @@ if __name__ == "__main__":
     game_info = utils.get_game_info(args.num_player, args.greedy_extra)
 
     if args.method == "vdn":
-        agent = vdn_r2d2.R2D2Agent(
+        agent = R2D2Agent(
             args.multi_step,
             args.gamma,
             0.9,
@@ -101,5 +104,33 @@ if __name__ == "__main__":
             args.rnn_hid_dim,
             game_info["num_action"],
         )
+
+    # Optimizer
+    optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, epsilon=args.eps)
+
+    # Replay buffer
+    replay_buffer = PrioritizedReplay(
+        capacity=args.replay_buffer_size,
+        seed=args.seed,
+        alpha=args.priority_exponent,
+        beta=args.priority_weight,
+        prefetch=args.prefetch
+    )
+
+    # Actor epsilon values
+    actor_eps = generate_actor_eps(args.act_base_eps, args.act_eps_alpha, args.num_thread)
+
+    # Create training environment
+    context, games, actors, threads = create_train_env(
+        args.method,
+        args.seed,
+        args.num_thread,
+        args.num_game_per_thread,
+        actor_eps,
+        args.max_len,
+        args.num_player,
+        args.train_bomb,
+        args.greedy_extra,
+    )
 
 

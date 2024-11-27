@@ -5,8 +5,11 @@ set_path.append_sys_path()
 import os
 import pprint
 import tensorflow as tf
-
-
+from rela import *
+from hanabi_learning_environment import pyhanabi
+from rela.env import *
+from rela.r2d2_actor import *
+from rela.context import *
 def create_train_env(
     method,
     seed,
@@ -19,17 +22,17 @@ def create_train_env(
     greedy_extra,
 ):
     assert method in ["vdn", "iql"]
-    context = rela.Context()
+    context = context.Context()
     games = []
     actors = []
     threads = []
     print(f"Training with bomb: {bomb}")
 
     for thread_idx in range(num_thread):
-        env = rela.VectorEnv()
+        env = env.VectorEnv()
         for game_idx in range(num_game_per_thread):
             unique_seed = seed + game_idx + thread_idx * num_game_per_thread
-            game = hanalearn.HanabiEnv(
+            game = pyhanabi.HanabiEnv(
                 {
                     "players": str(num_player),
                     "seed": str(unique_seed),
@@ -46,12 +49,12 @@ def create_train_env(
         if method == "vdn":
             actor = actor_cons(thread_idx)
             actors.append(actor)
-            thread = hanalearn.HanabiVDNThreadLoop(actor, env, False)
+            thread = pyhanabi.HanabiVDNThreadLoop(actor, env, False)
         else:
             assert len(actor_cons) == num_player
             env_actors = [actor_cons[i](thread_idx) for i in range(num_player)]
             actors.extend(env_actors)
-            thread = hanalearn.HanabiIQLThreadLoop(env_actors, env, False)
+            thread = pyhanabi.HanabiIQLThreadLoop(env_actors, env, False)
 
         threads.append(thread)
         context.push_env_thread(thread)
@@ -76,25 +79,25 @@ def create_eval_env(
     games = []
 
     for i in range(num_thread):
-        game = hanalearn.HanabiEnv(
+        game = pyhanabi.HanabiEnv(
             {"players": str(num_player), "seed": str(seed + i), "bomb": str(bomb)},
             -1,
             greedy_extra,
             False,
         )
         games.append(game)
-        env = rela.VectorEnv()
+        env = env.VectorEnv()
         env.append(game)
 
         env_actors = [
-            rela.R2D2Actor(model_lockers[j], 1, eval_eps) for j in range(num_player)
+            r2d2_actor.R2D2Actor(model_lockers[j], 1, eval_eps) for j in range(num_player)
         ]
 
         if log_prefix is None:
-            thread = hanalearn.HanabiIQLThreadLoop(env_actors, env, True)
+            thread = pyhanabi.HanabiIQLThreadLoop(env_actors, env, True)
         else:
             log_file = os.path.join(log_prefix, f"game{i}.txt")
-            thread = hanalearn.HanabiIQLThreadLoop(env_actors, env, True, log_file)
+            thread = pyhanabi.HanabiIQLThreadLoop(env_actors, env, True, log_file)
 
         context.push_env_thread(thread)
 

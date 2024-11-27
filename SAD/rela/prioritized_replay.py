@@ -3,6 +3,7 @@ import threading
 import random
 import numpy as np
 import queue
+from rela.thread_loop import ThreadLoop
 
 class PrioritizedReplay:
     def __init__(self, capacity, seed, alpha, beta, prefetch):
