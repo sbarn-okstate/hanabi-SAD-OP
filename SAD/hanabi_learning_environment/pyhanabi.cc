@@ -496,9 +496,10 @@ void StateGetMoveHistory(pyhanabi_state_t* state, int index,
           ->MoveHistory()
           .at(index));
 }
+
 void ApplyRandomChance(pyhanabi_state_t* state) {
    auto hanabi_state =
-      reinterpret_cast<const hanabi_learning_env::HanabiState*>(state->state);
+      reinterpret_cast<hanabi_learning_env::HanabiState*>(state->state);
     return hanabi_state->ApplyRandomChance();
 }
 

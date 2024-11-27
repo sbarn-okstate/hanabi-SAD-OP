@@ -61,7 +61,7 @@ def parse_args():
     parser.add_argument("--prefetch", type=int, default=3, help="#prefetch batch")
 
     # thread setting
-    parser.add_argument("--num_thread", type=int, default=40, help="#thread_loop")
+    parser.add_argument("--num_thread", type=int, default=1, help="#thread_loop")
     parser.add_argument("--num_game_per_thread", type=int, default=20)
 
     # actor setting
