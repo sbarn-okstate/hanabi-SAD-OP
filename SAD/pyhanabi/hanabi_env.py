@@ -34,7 +34,7 @@ class HanabiEnv:
 
     def reset(self):
         assert self.terminated()
-        self.state = HanabiState(self.game)
+        self.state = pyhanabi.HanabiState(self.game)
 
         # Chance player
         while self.state.cur_player == -1: #HanabiLearningEnv.kChancePlayerId: <- constexpr = -1
@@ -58,7 +58,7 @@ class HanabiEnv:
 
         clone_state = None
         if self.greedy_extra:
-            clone_state = HanabiState(self.state)
+            clone_state = pyhanabi.HanabiState(self.state)
             greedy_action_uid = action['greedy_a'][cur_player].numpy()
             greedy_move = self.game.get_move(greedy_action_uid)
             if not self.state.move_is_legal(greedy_move):
@@ -103,11 +103,11 @@ class HanabiEnv:
         legal_move = []
 
         for i in range(self.game.num_players):
-            obs = HanabiObservation(self.state, i, False)
+            obs = pyhanabi.HanabiObservation(self.state, i, False)
             v_s = self.obs_encoder.encode(obs)
             if self.greedy_extra:
                 assert clone_state is not None
-                extra_obs = HanabiObservation(clone_state, i, False)
+                extra_obs = pyhanabi.HanabiObservation(clone_state, i, False)
                 v_greedy_action = self.obs_encoder.encode_last_action(extra_obs)
                 v_s.extend(v_greedy_action)
 
