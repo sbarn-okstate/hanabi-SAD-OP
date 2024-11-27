@@ -18,7 +18,7 @@ class HanabiEnv:
                 print(f"  {key}={value}")
 
     def feature_size(self):
-        size = self.obs_encoder.Shape()[0]
+        size = self.obs_encoder.shape()[0]
         if self.greedy_extra:
             size += HanabiLearningEnv.LastActionSectionLength(self.game)
         return size
