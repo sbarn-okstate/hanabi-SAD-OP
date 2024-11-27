@@ -14,7 +14,13 @@ namespace py = pybind11;
 namespace hle = hanabi_learning_env;
 
 PYBIND11_MODULE(hanabi, m) {
+    // Binding for HanabiGame class with required argument
+    py::class_<hle::HanabiGame>(m, "HanabiGame")
+        .def(py::init<const std::unordered_map<std::string, std::string>&>())  // Pass map as argument
+        ;
+    // Binding for CanonicalObservationEncoder
     py::class_<hle::CanonicalObservationEncoder>(m, "CanonicalObservationEncoder")
-        .def(py::init<>())
-        .def("Shape", &hle::CanonicalObservationEncoder::Shape);
+        .def(py::init<const hle::HanabiGame*>())  // Provide HanabiGame* as constructor argument
+        .def("Shape", &hle::CanonicalObservationEncoder::Shape)
+        ;
 }
