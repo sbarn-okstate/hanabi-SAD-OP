@@ -37,7 +37,7 @@ class HanabiEnv:
         self.state = HanabiState(self.game)
 
         # Chance player
-        while self.state.cur_player == HanabiLearningEnv.kChancePlayerId:
+        while self.state.cur_player == -1 #HanabiLearningEnv.kChancePlayerId: <- constexpr = -1
             self.state.apply_random_chance()
 
         self.num_step = 0
@@ -77,7 +77,7 @@ class HanabiEnv:
 
         if not terminal:
             # Chance player
-            while self.state.cur_player == HanabiLearningEnv.kChancePlayerId:
+            while self.state.cur_player == -1 #HanabiLearningEnv.kChancePlayerId: <- constexpr = -1
                 self.state.apply_random_chance()
 
         obs = self.compute_feature_and_legal_move(clone_state)
