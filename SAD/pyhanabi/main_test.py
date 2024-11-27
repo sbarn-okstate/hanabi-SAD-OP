@@ -133,4 +133,12 @@ if __name__ == "__main__":
         args.greedy_extra,
     )
 
+    # Warm up replay buffer
+    context.start()
+    while replay_buffer.size() < args.burn_in_frames:
+        print("Warming up replay buffer:", replay_buffer.size())
+        time.sleep(1)
+
+    # Training loop
+    tachometer = Tachometer()
 
