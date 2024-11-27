@@ -103,17 +103,17 @@ class HanabiEnv:
         legal_move = []
 
         for i in range(self.game.num_players()):
-            obs = pyhanabi.HanabiObservation(self.state, i, False)
+            obs = pyhanabi.HanabiObservation(self.state._state, i, False)
             v_s = self.obs_encoder.encode(obs)
             if self.greedy_extra:
                 assert clone_state is not None
-                extra_obs = pyhanabi.HanabiObservation(clone_state, i, False)
+                extra_obs = pyhanabi.HanabiObservation(clone_state._state, i, False)
                 v_greedy_action = self.obs_encoder.encode_last_action(extra_obs)
                 v_s.extend(v_greedy_action)
 
             s.append(tf.convert_to_tensor(v_s, dtype=tf.float32))
 
-            legal_moves = self.state.legal_moves(i)
+            legal_moves = self.state.legal_moves()
             move_uids = np.zeros(self.num_action())
             for move in legal_moves:
                 uid = self.game.get_move_uid(move)
