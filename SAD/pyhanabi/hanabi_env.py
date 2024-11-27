@@ -5,7 +5,7 @@ from hanabi_learning_environment import pyhanabi
 class HanabiEnv:
     def __init__(self, game_params, max_len, greedy_extra, verbose):
         self.game = pyhanabi.HanabiGame(game_params)
-        self.obs_encoder = pyhanabi.CanonicalObservationEncoder(self.game)
+        self.obs_encoder = pyhanabi.ObservationEncoder(self.game)
         self.state = None
         self.max_len = max_len
         self.num_step = 0
@@ -24,7 +24,7 @@ class HanabiEnv:
         return size
 
     def num_action(self):
-        return self.game.max_moves + 1
+        return self.game.max_moves() + 1
 
     def no_op_uid(self):
         return self.num_action() - 1
