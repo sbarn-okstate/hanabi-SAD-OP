@@ -11,6 +11,7 @@ from hanabi_env import *
 from rela.env import *
 from rela.r2d2_actor import *
 from rela.context import *
+from thread_loop import *
 
 def create_train_env(
     method,
@@ -49,7 +50,7 @@ def create_train_env(
 
         assert max_len > 0
         if method == "vdn":
-            actor = actor_cons(thread_idx)
+            actor = actor_cons[thread_idx]
             actors.append(actor)
             thread = HanabiVDNThreadLoop(actor, env, False)
         else:
@@ -59,7 +60,7 @@ def create_train_env(
             thread = HanabiIQLThreadLoop(env_actors, env, False)
 
         threads.append(thread)
-        context.push_env_thread(thread)
+        context.pushThreadLoop(thread)
 
     print(
         f"Finished creating environments with {len(games)} games and {len(actors)} actors"
