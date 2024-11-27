@@ -645,6 +645,9 @@ class HanabiState(object):
       history.append(HanabiHistoryItem(c_history_item))
     return history
 
+  def apply_random_chance(self):
+    lib.ApplyRandomChance()
+
   def __str__(self):
     c_string = lib.StateToString(self._state)
     string = encode_ffi_string(c_string)
