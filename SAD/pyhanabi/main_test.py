@@ -93,7 +93,7 @@ if __name__ == "__main__":
     common_utils.set_all_seeds(args.seed)
     pprint.pprint(vars(args))
 
-    game_info = utils.get_game_info(args.num_player, args.greedy_extra)
+    game_info = get_game_info(args.num_player, args.greedy_extra)
 
     if args.method == "vdn":
         agent = R2D2Agent(
