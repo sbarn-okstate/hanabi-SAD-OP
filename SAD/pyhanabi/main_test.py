@@ -93,7 +93,7 @@ if __name__ == "__main__":
     game_info = utils.get_game_info(args.num_player, args.greedy_extra)
 
     if args.method == "vdn":
-        agent = R2D2Agent(
+        agent = vdn_r2d2.R2D2Agent(
             args.multi_step,
             args.gamma,
             0.9,
