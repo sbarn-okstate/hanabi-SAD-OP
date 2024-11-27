@@ -77,3 +77,6 @@ class PrioritizedReplay:
             weights = tf.pow(priority, self.alpha_)
             self.storage_.update(self.sampledIds_, weights)
         self.sampledIds_ = []
+
+    def size(self):
+      return self.storage_.safeSize()

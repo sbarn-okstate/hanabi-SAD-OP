@@ -37,7 +37,7 @@ class HanabiEnv:
         self.state = pyhanabi.HanabiState(self.game)
 
         # Chance player
-        while self.state.cur_player == -1: #HanabiLearningEnv.kChancePlayerId: <- constexpr = -1
+        while self.state.cur_player() == -1: #HanabiLearningEnv.kChancePlayerId: <- constexpr = -1
             self.state.apply_random_chance()
 
         self.num_step = 0
@@ -102,7 +102,7 @@ class HanabiEnv:
         s = []
         legal_move = []
 
-        for i in range(self.game.num_players):
+        for i in range(self.game.num_players()):
             obs = pyhanabi.HanabiObservation(self.state, i, False)
             v_s = self.obs_encoder.encode(obs)
             if self.greedy_extra:
