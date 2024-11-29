@@ -50,7 +50,7 @@ def create_train_env(
 
         assert max_len > 0
         if method == "vdn":
-            actor = actor_cons[thread_idx]
+            actor = actor_cons[thread_idx](thread_idx)
             actors.append(actor)
             thread = HanabiVDNThreadLoop(actor, env, False)
         else:

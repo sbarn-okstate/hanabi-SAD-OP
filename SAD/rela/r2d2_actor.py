@@ -9,7 +9,6 @@ class R2D2TransitionBuffer:
         self.num_players = num_players
         self.multi_step = multi_step
         self.seq_len = seq_len
-
         self.batch_next_idx = [0] * batch_size
         self.batch_h0 = [None] * batch_size  # Placeholder for h0
         self.batch_seq_transition = [[None] * seq_len for _ in range(batch_size)]
@@ -92,34 +91,37 @@ class R2D2Actor(Actor):
         self.replay_buffer = replay_buffer
         self.hidden = self.get_h0(batch_size * num_players)
         self.num_act = 0
+        self.history_hidden = deque()
 
     def num_act(self):
         return self.num_act
 
     def act(self, obs):
         # Equivalent to NoGradGuard in PyTorch
-        with tf.no_gradient_scope():
-            assert self.hidden is not None
+        assert self.hidden is not None
 
-            if self.replay_buffer is not None:
-                self.history_hidden.append(self.hidden)
+        if self.replay_buffer is not None:
+            self.history_hidden.append(self.hidden)
 
-            eps = tf.zeros([self.batch_size, self.num_players], dtype=tf.float32)
-            eps.fill(self.greedy_eps)
-            obs["eps"] = eps
+        eps = tf.fill([obs["s"].shape[0], self.num_players], self.greedy_eps)
+        obs["eps"] = eps
 
-            # Convert observation to input for model (TensorFlow equivalent of tensorDictToTorchDict)
-            input_data = [obs, self.hidden]
-            output = self.model_locker.get_model().act(input_data)
+        # Convert observation to input for model (TensorFlow equivalent of tensorDictToTorchDict)
 
-            action = output[0]
-            self.hidden = output[1]
+        obs_tensor = tf.concat([obs["s"], obs["legal_move"], obs["eps"]], axis=1)
+        input_data = tf.concat([obs_tensor, self.hidden["h0"]], axis=1)
+ 
+        input_data = tf.stop_gradient(input_data)
+        output = self.model_locker.get_model().act(input_data)
 
-            if self.replay_buffer is not None:
-                self.multi_step_buffer.append((obs, action))
+        action = output[0]
+        self.hidden = output[1]
 
-            self.num_act += self.batch_size
-            return action
+        if self.replay_buffer is not None:
+            self.multi_step_buffer.append((obs, action))
+
+        self.num_act += self.batch_size
+        return action
 
     def set_reward_and_terminal(self, r, t):
         if self.replay_buffer is None:
