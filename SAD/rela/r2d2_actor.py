@@ -107,12 +107,13 @@ class R2D2Actor(Actor):
         obs["eps"] = eps
 
         # Convert observation to input for model (TensorFlow equivalent of tensorDictToTorchDict)
-
-        obs_tensor = tf.concat([obs["s"], obs["legal_move"], obs["eps"]], axis=1)
-        input_data = tf.concat([obs_tensor, self.hidden["h0"]], axis=1)
  
-        input_data = tf.stop_gradient(input_data)
-        output = self.model_locker.get_model().act(input_data)
+        self.hidden["h0"] = tf.stop_gradient(self.hidden["h0"])
+        obs["s"] = tf.stop_gradient(obs["s"])
+        obs["legal_move"] = tf.stop_gradient(obs["legal_move"])
+        obs["eps"] = tf.stop_gradient(obs["eps"])
+        
+        output = self.model_locker.get_model().act(obs, self.hidden)
 
         action = output[0]
         self.hidden = output[1]
@@ -161,7 +162,7 @@ class R2D2Actor(Actor):
 
     def get_h0(self, batch_size):
         # Placeholder for getting initial hidden state
-        return {'h0': tf.zeros([batch_size, 128])}  # Example of a 128-dimensional hidden state
+        return self.model_locker.get_model().get_h0(batch_size)
 
     def compute_priority(self, transition, hid, next_hid):
         input_data = [transition, hid, next_hid]

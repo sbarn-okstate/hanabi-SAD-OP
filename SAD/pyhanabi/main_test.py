@@ -146,7 +146,7 @@ if __name__ == "__main__":
     for act_device in act_devices:
         ref_model = [agent.clone() for _ in range(3)]
         ref_models.extend(ref_model)
-        model_locker = ModelLocker(ref_model)
+        model_locker = ModelLocker(ref_model[0])
         model_lockers.append(model_locker)
 
     # Actor epsilon values

@@ -18,13 +18,16 @@ class R2D2Net(tf.keras.Model):
 
         # Network architecture
         self.net = tf.keras.Sequential([
-            layers.Dense(hid_dim, activation='relu')
+            layers.Dense(self.hid_dim, activation='relu')
         ])
-        self.lstm = layers.LSTM(
-            hid_dim, return_sequences=True, return_state=True, recurrent_initializer='glorot_uniform'
-        )
+        self.lstm_layers = []
+        for _ in range(self.num_lstm_layers):
+            self.lstm_layers.append(tf.keras.layers.LSTM(self.hid_dim, return_state=True, return_sequences=True))
+        
+        self.lstm = tf.keras.Sequential(self.lstm_layers)
+
         self.fc_v = layers.Dense(1)
-        self.fc_a = layers.Dense(out_dim)
+        self.fc_a = layers.Dense(self.out_dim)
 
     def get_h0(self, batch_size):
         # Initialize LSTM hidden states (h0, c0)
@@ -41,10 +44,14 @@ class R2D2Net(tf.keras.Model):
 
     def act(self, s, legal_move, hid):
         s = tf.expand_dims(s, axis=0)  # Add sequence dimension
-        x = self.net(s)
-        o, h, c = self.lstm(x, initial_state=[hid["h0"], hid["c0"]])
+        
+        o = self.net(s)
+        for i in range(self.num_lstm_layers):
+          o, h, c = self.lstm_layers[i](o, initial_state=[hid["h0"][i], hid["c0"][i]])
+
+
         a = self.fc_a(o)
-        a = tf.squeeze(a, axis=0)
+        #a = tf.squeeze(a, axis=0)
         return a, {"h0": h, "c0": c}
 
     def call(self, s, legal_move, action, hid):
@@ -52,13 +59,15 @@ class R2D2Net(tf.keras.Model):
         s = tf.reshape(s, (seq_len, batch_size * num_player, dim))
         legal_move = tf.reshape(legal_move, (seq_len, batch_size * num_player, self.out_dim))
         action = tf.reshape(action, (seq_len, batch_size * num_player))
+        initial_state=[hid["h0"], hid["c0"]]
 
-        x = self.net(s)
+        o = self.net(s)
         if not hid:
-            o, h, c = self.lstm(x)
+            o, h, c = self.lstm(o)
         else:
-            o, h, c = self.lstm(x, initial_state=[hid["h0"], hid["c0"]])
-        
+          for i in range(self.num_lstm_layers):
+            o, h, c = self.lstm_layers[i](o, initial_state=[hid["h0"][i], hid["c0"][i]])
+
         a = self.fc_a(o)
         v = self.fc_v(o)
         q = self.duel(v, a, legal_move)
@@ -121,16 +130,19 @@ class R2D2Agent(tf.keras.Model):
         Perform epsilon-greedy action selection.
         obs: Dict with "s" (state), "legal_move", and "eps" (exploration probability)
         """
+        print(obs["s"].shape)
+        print(obs["legal_move"].shape)
         s = tf.reshape(obs["s"], [-1, obs["s"].shape[-1]])
         legal_move = tf.reshape(obs["legal_move"], [-1, obs["legal_move"].shape[-1]])
         eps = tf.reshape(obs["eps"], [-1])
-
+        print(eps)
         greedy_action, new_hid = self.greedy_act(s, legal_move, hid)
-        random_action = tf.random.categorical(tf.math.log(legal_move), 1)[:, 0]
-
-        rand = tf.random.uniform(tf.shape(eps))
-        use_random = tf.cast(rand < eps, tf.int32)
-
+        random_action = tf.random.categorical(tf.math.log(legal_move), legal_move.shape[1])
+        print(random_action.shape)
+        print(greedy_action.shape)
+        rand = tf.random.uniform(eps.shape)
+        use_random = tf.transpose(tf.expand_dims(tf.cast(rand < eps, tf.int64), axis=0))
+        print(use_random.shape)
         action = greedy_action * (1 - use_random) + random_action * use_random
         action = tf.reshape(action, [obs["s"].shape[0], -1])
         return {"a": action, "greedy_a": tf.reshape(greedy_action, action.shape)}, new_hid
