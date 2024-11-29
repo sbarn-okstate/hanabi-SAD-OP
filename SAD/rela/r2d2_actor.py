@@ -103,7 +103,7 @@ class R2D2Actor(Actor):
         if self.replay_buffer is not None:
             self.history_hidden.append(self.hidden)
 
-        eps = tf.fill([obs["s"].shape[0], self.num_players], self.greedy_eps)
+        eps = tf.fill([self.batch_size, self.num_players], self.greedy_eps)
         obs["eps"] = eps
 
         # Convert observation to input for model (TensorFlow equivalent of tensorDictToTorchDict)
