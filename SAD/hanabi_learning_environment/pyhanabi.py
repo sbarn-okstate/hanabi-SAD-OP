@@ -646,9 +646,7 @@ class HanabiState(object):
     return history
 
   def apply_random_chance(self):
-    print(self._state)
     lib.ApplyRandomChance(self._state)
-    print(self._state)
 
   def __str__(self):
     c_string = lib.StateToString(self._state)

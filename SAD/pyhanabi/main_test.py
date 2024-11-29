@@ -15,8 +15,11 @@ import argparse
 from hanabi_learning_environment import pyhanabi
 import common_utils
 from create_envs import *
-from vdn_r2d2 import *
+import vdn_r2d2
 from rela.prioritized_replay import *
+import iql_r2d2
+from rela.transition_buffer import *
+from rela.r2d2_actor import *
 
 def parse_args():
     parser = argparse.ArgumentParser(description="train dqn on hanabi")
@@ -96,7 +99,12 @@ if __name__ == "__main__":
     game_info = get_game_info(args.num_player, args.greedy_extra)
 
     if args.method == "vdn":
-        agent = R2D2Agent(
+        args.batchsize = int(np.round(args.batchsize / args.num_player))
+        args.replay_buffer_size //= args.num_player
+        args.burn_in_frames //= args.num_player
+
+    if args.method == "vdn":
+        agent = vdn_r2d2.R2D2Agent(
             args.multi_step,
             args.gamma,
             0.9,
@@ -104,6 +112,21 @@ if __name__ == "__main__":
             args.rnn_hid_dim,
             game_info["num_action"],
         )
+
+    eval_agents = []
+    eval_lockers = []
+    for _ in range(args.num_player):
+        ea = iql_r2d2.R2D2Agent(
+            1,
+            0.99,
+            0.9,
+            game_info["input_dim"],
+            args.rnn_hid_dim,
+            game_info["num_action"],
+        )
+        locker = ModelLocker(ea)
+        eval_agents.append(ea)
+        eval_lockers.append(locker)
 
     # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, epsilon=args.eps)
@@ -117,16 +140,41 @@ if __name__ == "__main__":
         prefetch=args.prefetch
     )
 
+    ref_models = []
+    model_lockers = []
+    act_devices = args.act_device.split(",")
+    for act_device in act_devices:
+        ref_model = [agent.clone() for _ in range(3)]
+        ref_models.extend(ref_model)
+        model_locker = ModelLocker(ref_model)
+        model_lockers.append(model_locker)
+
     # Actor epsilon values
     actor_eps = generate_actor_eps(args.act_base_eps, args.act_eps_alpha, args.num_thread)
+    print("actor eps", actor_eps)
 
+    if args.method == "vdn":
+        actor_cons = []
+        for _ in range(args.num_player):
+            actor_cons.append(
+                lambda thread_idx: R2D2Actor(
+                    model_lockers[thread_idx % len(model_lockers)],
+                    args.multi_step,
+                    args.num_game_per_thread,
+                    args.gamma,
+                    args.max_len,
+                    actor_eps[thread_idx],
+                    args.num_player,
+                    replay_buffer,
+                )
+            )
     # Create training environment
     context, games, actors, threads = create_train_env(
         args.method,
         args.seed,
         args.num_thread,
         args.num_game_per_thread,
-        actor_eps,
+        actor_cons,
         args.max_len,
         args.num_player,
         args.train_bomb,
