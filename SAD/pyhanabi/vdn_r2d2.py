@@ -130,19 +130,13 @@ class R2D2Agent(tf.keras.Model):
         Perform epsilon-greedy action selection.
         obs: Dict with "s" (state), "legal_move", and "eps" (exploration probability)
         """
-        print(obs["s"].shape)
-        print(obs["legal_move"].shape)
         s = tf.reshape(obs["s"], [-1, obs["s"].shape[-1]])
         legal_move = tf.reshape(obs["legal_move"], [-1, obs["legal_move"].shape[-1]])
         eps = tf.reshape(obs["eps"], [-1])
-        print(eps)
         greedy_action, new_hid = self.greedy_act(s, legal_move, hid)
         random_action = tf.random.categorical(tf.math.log(legal_move), legal_move.shape[1])
-        print(random_action.shape)
-        print(greedy_action.shape)
         rand = tf.random.uniform(eps.shape)
         use_random = tf.transpose(tf.expand_dims(tf.cast(rand < eps, tf.int64), axis=0))
-        print(use_random.shape)
         action = greedy_action * (1 - use_random) + random_action * use_random
         action = tf.reshape(action, [obs["s"].shape[0], -1])
         return {"a": action, "greedy_a": tf.reshape(greedy_action, action.shape)}, new_hid
