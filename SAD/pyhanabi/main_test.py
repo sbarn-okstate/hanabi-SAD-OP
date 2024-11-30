@@ -130,7 +130,8 @@ if __name__ == "__main__":
 
     # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, epsilon=args.eps)
-
+    print(agent)
+    
     # Replay buffer
     replay_buffer = PrioritizedReplay(
         capacity=args.replay_buffer_size,
