@@ -189,4 +189,41 @@ if __name__ == "__main__":
 
     # Training loop
     tachometer = Tachometer()
+    for epoch in range(args.num_epoch):
+        print(f"Starting epoch {epoch}")
+        stat = common_utils.MultiCounter(args.save_dir)
+        stat.reset()
+        tachometer.start()
 
+        for batch_idx in range(args.epoch_len):
+            num_update = batch_idx + epoch * args.epoch_len
+            if num_update % args.num_update_between_sync == 0:
+                agent.sync_target_with_online()
+
+            # Sample from replay buffer (PrioritizedReplay)
+            batch, weights, sampledIds = replay_buffer.sample(args.batchsize, args.train_device)
+            
+            with tf.GradientTape() as tape:
+                loss, priorities = agent.loss(batch)
+                weighted_loss = tf.reduce_mean(loss * weights)
+
+            # Backpropagation
+            grads = tape.gradient(weighted_loss, agent.trainable_variables)
+            grads = [tf.clip_by_norm(g, args.grad_clip) for g in grads]
+            optimizer.apply_gradients(zip(grads, agent.trainable_variables))
+
+            # Update priorities in replay buffer
+            replay_buffer.updatePriority(priorities.numpy())
+
+            # Log statistics
+            stat["loss"].feed(weighted_loss.numpy())
+
+        # Evaluate
+        context.pause()
+        score, perfect = evaluate(agent, args.num_eval_games, args.seed, args.num_player)
+        print(f"Epoch {epoch} evaluation: Score {score:.4f}, Perfect games {perfect:.2f}%")
+
+        # Save model
+        model_saved = saver.save(agent, score)
+        print(f"Model saved: {model_saved}")
+        context.resume()
