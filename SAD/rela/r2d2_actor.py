@@ -89,7 +89,7 @@ class R2D2Actor(Actor):
         self.r2d2_buffer = R2D2TransitionBuffer(batch_size, num_players, multi_step, seq_len)
         self.multi_step_buffer = []  # Assuming some implementation exists for multi-step
         self.replay_buffer = replay_buffer
-        self.hidden = self.get_h0(batch_size * num_players)
+        self.hidden = self.get_h0(1 * num_players)
         self.num_act = 0
         self.history_hidden = deque()
 

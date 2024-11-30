@@ -82,8 +82,6 @@ class R2D2Net(tf.keras.Model):
         greedy_action = tf.reshape(greedy_action, (seq_len, batch_size, num_player))
         return sum_q, greedy_action
 
-        import tensorflow as tf
-
 class R2D2Agent(tf.keras.Model):
     def __init__(self, multi_step, gamma, eta, in_dim, hid_dim, out_dim):
         super(R2D2Agent, self).__init__()

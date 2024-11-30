@@ -50,7 +50,7 @@ class HanabiEnv:
         prev_score = self.state.score()
 
         # Perform action for only current player
-        cur_player = self.state.cur_player
+        cur_player = self.state.cur_player()
         action_uid = action['a'][cur_player].numpy()
         move = self.game.get_move(action_uid)
         if not self.state.move_is_legal(move):
