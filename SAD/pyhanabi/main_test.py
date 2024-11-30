@@ -44,9 +44,9 @@ def parse_args():
     parser.add_argument(
         "--batchsize", type=int, default=128,
     )
-    parser.add_argument("--num_epoch", type=int, default=5000)
-    parser.add_argument("--epoch_len", type=int, default=1000)
-    parser.add_argument("--num_update_between_sync", type=int, default=2500)
+    parser.add_argument("--num_epoch", type=int, default=5)
+    parser.add_argument("--epoch_len", type=int, default=500)
+    parser.add_argument("--num_update_between_sync", type=int, default=500)
 
     # DQN settings
     parser.add_argument("--multi_step", type=int, default=3)
@@ -65,7 +65,7 @@ def parse_args():
 
     # thread setting
     parser.add_argument("--num_thread", type=int, default=1, help="#thread_loop")
-    parser.add_argument("--num_game_per_thread", type=int, default=20)
+    parser.add_argument("--num_game_per_thread", type=int, default=1)
 
     # actor setting
     parser.add_argument("--act_base_eps", type=float, default=0.4)
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, epsilon=args.eps)
     print(agent)
-    
+
     # Replay buffer
     replay_buffer = PrioritizedReplay(
         capacity=args.replay_buffer_size,
