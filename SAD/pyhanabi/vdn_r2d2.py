@@ -21,9 +21,12 @@ class R2D2Net(tf.keras.Model):
             layers.Dense(self.hid_dim, activation='relu')
         ])
         self.lstm_layers = []
-        for _ in range(self.num_lstm_layers):
-            self.lstm_layers.append(tf.keras.layers.LSTM(self.hid_dim, return_state=True, return_sequences=True))
-        
+        for i in range(self.num_lstm_layers):
+            return_sequences = i < self.num_lstm_layers - 1  # True for all but last layer
+            self.lstm_layers.append(tf.keras.layers.LSTM(
+                self.hid_dim, return_state=True, return_sequences=return_sequences
+            ))
+
         self.lstm = tf.keras.Sequential(self.lstm_layers)
 
         self.fc_v = layers.Dense(1)
@@ -42,14 +45,13 @@ class R2D2Net(tf.keras.Model):
         q = v + legal_a - tf.reduce_mean(legal_a, axis=2, keepdims=True)
         return q
 
+    @tf.function
     def act(self, s, legal_move, hid):
+        assert len(s.shape) == 2, f"should be 2 [batch, dim], get {len(s.shape)}"
         s = tf.expand_dims(s, axis=0)  # Add sequence dimension
-        
         o = self.net(s)
         for i in range(self.num_lstm_layers):
           o, h, c = self.lstm_layers[i](o, initial_state=[hid["h0"][i], hid["c0"][i]])
-
-
         a = self.fc_a(o)
         #a = tf.squeeze(a, axis=0)
         return a, {"h0": h, "c0": c}
@@ -132,11 +134,16 @@ class R2D2Agent(tf.keras.Model):
         legal_move = tf.reshape(obs["legal_move"], [-1, obs["legal_move"].shape[-1]])
         eps = tf.reshape(obs["eps"], [-1])
         greedy_action, new_hid = self.greedy_act(s, legal_move, hid)
-        random_action = tf.random.categorical(tf.math.log(legal_move), legal_move.shape[1])
-        rand = tf.random.uniform(eps.shape)
-        use_random = tf.transpose(tf.expand_dims(tf.cast(rand < eps, tf.int64), axis=0))
-        action = greedy_action * (1 - use_random) + random_action * use_random
+
+        random_action = tf.squeeze(tf.random.categorical(tf.math.log(legal_move), num_samples=1), axis=1)
+        rand = tf.random.uniform(tf.shape(greedy_action), dtype=tf.float32)
+        tf.debugging.assert_equal(tf.shape(rand), tf.shape(eps), message="Shapes of rand and eps do not match")
+        rand = tf.cast(rand < eps, tf.int32)
+
+        # Combine greedy and random actions based on the random decision
+        action = tf.cast(greedy_action, tf.int32) * (1 - rand) + tf.cast(random_action, tf.int32) * rand
         action = tf.reshape(action, [obs["s"].shape[0], -1])
+        
         return {"a": action, "greedy_a": tf.reshape(greedy_action, action.shape)}, new_hid
 
     @tf.function
