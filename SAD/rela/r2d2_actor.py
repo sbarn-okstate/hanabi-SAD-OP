@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from collections import deque
 from rela.actor import Actor
+from rela.transition_buffer import MultiStepTransitionBuffer
 
 class R2D2TransitionBuffer:
     def __init__(self, batch_size, num_players, multi_step, seq_len):
@@ -87,7 +88,7 @@ class R2D2Actor(Actor):
         self.greedy_eps = greedy_eps
         self.num_players = num_players
         self.r2d2_buffer = R2D2TransitionBuffer(batch_size, num_players, multi_step, seq_len)
-        self.multi_step_buffer = []  # Assuming some implementation exists for multi-step
+        self.multi_step_buffer = MultiStepTransitionBuffer(multi_step, batch_size, gamma)
         self.replay_buffer = replay_buffer
         self.hidden = self.get_h0(1 * num_players)
         self.num_act = 0
@@ -119,7 +120,7 @@ class R2D2Actor(Actor):
         self.hidden = output[1]
 
         if self.replay_buffer is not None:
-            self.multi_step_buffer.append((obs, action))
+            self.multi_step_buffer.push_obs_and_action(obs, action)
 
         self.num_act += self.batch_size
         return action
@@ -128,11 +129,11 @@ class R2D2Actor(Actor):
         if self.replay_buffer is None:
             return
 
-        self.multi_step_buffer.append((r, t))
+        self.multi_step_buffer.push_reward_and_terminal(r, t)
 
         # Reset hidden states for terminal states
         h0 = self.get_h0(1)
-        terminal = t.numpy()
+        terminal = t#.numpy()
 
         for i in range(len(terminal)):
             if terminal[i]:
@@ -143,14 +144,14 @@ class R2D2Actor(Actor):
         if self.replay_buffer is None:
             return
 
-        if len(self.multi_step_buffer) == 0:
+        if self.multi_step_buffer.size() == 0:
             return
 
         # Get transition and calculate priority
-        transition = self.multi_step_buffer.pop(0)
+        transition = list(self.multi_step_buffer.pop_transition())
         hid = self.history_hidden[0]
         next_hid = self.history_hidden[-1]
-        self.history_hidden.pop(0)
+        self.history_hidden.pop()
 
         priority = self.compute_priority(transition, hid, next_hid)
         self.r2d2_buffer.push(transition, priority, hid)
@@ -165,11 +166,11 @@ class R2D2Actor(Actor):
         return self.model_locker.get_model().get_h0(batch_size)
 
     def compute_priority(self, transition, hid, next_hid):
-        input_data = [transition, hid, next_hid]
-        priority = self.model_locker.get_model().compute_priority(input_data)
+        input_data =  transition + [hid, next_hid]        
+        priority = self.model_locker.get_model().compute_priority(*input_data)
         return priority
 
     def aggregate_priority(self, priority, length):
         input_data = [priority, length]
-        agg_priority = self.model_locker.get_model().aggregate_priority(input_data)
+        agg_priority = self.model_locker.get_model().aggregate_priority(*input_data)
         return agg_priority
