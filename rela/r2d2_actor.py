@@ -144,7 +144,8 @@ class R2D2Actor(Actor):
         if self.replay_buffer is None:
             return
 
-        if self.multi_step_buffer.size() == 0:
+        if not self.multi_step_buffer.can_pop():
+            assert not self.r2d2_buffer.can_pop
             return
 
         # Get transition and calculate priority

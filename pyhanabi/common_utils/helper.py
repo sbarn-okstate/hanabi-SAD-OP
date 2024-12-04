@@ -1,15 +1,7 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-#
 import os
 import random
-
 import numpy as np
-import torch
-from torch import nn
+import tensorflow as tf
 from typing import Dict
 
 
@@ -25,7 +17,7 @@ def get_all_files(root, file_extension):
 def moving_average(data, period):
     # padding
     left_pad = [data[0] for _ in range(period // 2)]
-    right_pad = data[-period // 2 + 1 :]
+    right_pad = data[-period // 2 + 1:]
     data = left_pad + data + right_pad
     weights = np.ones(period) / period
     return np.convolve(data, weights, mode="valid")
@@ -86,9 +78,9 @@ def get_mem_usage():
 
 
 def flatten_first2dim(batch):
-    if isinstance(batch, torch.Tensor):
-        size = batch.size()[2:]
-        batch = batch.view(-1, *size)
+    if isinstance(batch, tf.Tensor):
+        size = batch.shape[1:]
+        batch = tf.reshape(batch, [-1, *size])
         return batch
     elif isinstance(batch, dict):
         return {key: flatten_first2dim(batch[key]) for key in batch}
@@ -96,22 +88,11 @@ def flatten_first2dim(batch):
         assert False, "unsupported type: %s" % type(batch)
 
 
-def _tensor_slice(t, dim, b, e):
-    if dim == 0:
-        return t[b:e]
-    elif dim == 1:
-        return t[:, b:e]
-    elif dim == 2:
-        return t[:, :, b:e]
-    else:
-        raise ValueError("unsupported %d in tensor_slice" % dim)
-
-
 def tensor_slice(t, dim, b, e):
     if isinstance(t, dict):
         return {key: tensor_slice(t[key], dim, b, e) for key in t}
-    elif isinstance(t, torch.Tensor):
-        return _tensor_slice(t, dim, b, e).contiguous()
+    elif isinstance(t, tf.Tensor):
+        return t[b:e]
     else:
         assert False, "Error: unsupported type: %s" % (type(t))
 
@@ -119,43 +100,44 @@ def tensor_slice(t, dim, b, e):
 def tensor_index(t, dim, i):
     if isinstance(t, dict):
         return {key: tensor_index(t[key], dim, i) for key in t}
-    elif isinstance(t, torch.Tensor):
-        return _tensor_slice(t, dim, i, i + 1).squeeze(dim).contiguous()
+    elif isinstance(t, tf.Tensor):
+        return t[i]
     else:
         assert False, "Error: unsupported type: %s" % (type(t))
 
 
 def one_hot(x, n):
-    assert x.dim() == 2 and x.size(1) == 1
-    one_hot_x = torch.zeros(x.size(0), n, device=x.device)
-    one_hot_x.scatter_(1, x, 1)
+    assert len(x.shape) == 2 and x.shape[1] == 1
+    one_hot_x = tf.zeros((x.shape[0], n), dtype=tf.float32)
+    one_hot_x = tf.tensor_scatter_nd_update(one_hot_x, tf.reshape(x, (-1, 1)), tf.ones(x.shape[0], dtype=tf.float32))
     return one_hot_x
 
 
 def set_all_seeds(rand_seed):
     random.seed(rand_seed)
     np.random.seed(rand_seed + 1)
-    torch.manual_seed(rand_seed + 2)
-    torch.cuda.manual_seed(rand_seed + 3)
+    tf.random.set_seed(rand_seed + 2)
 
 
 def weights_init(m):
     """custom weights initialization"""
-    if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-        # nn.init.kaiming_normal(m.weight.data)
-        nn.init.orthogonal_(m.weight.data)
+    if isinstance(m, tf.keras.layers.Dense):
+        # TensorFlow's equivalent of orthogonal initialization
+        initializer = tf.initializers.Orthogonal()
+        m.kernel_initializer = initializer
     else:
         print("%s is not custom-initialized." % m.__class__)
 
 
 def init_net(net, net_file):
     if net_file:
-        net.load_state_dict(torch.load(net_file))
+        net.load_weights(net_file)
     else:
-        net.apply(weights_init)
+        for layer in net.layers:
+            weights_init(layer)
 
 
 def count_output_size(input_shape, model):
-    fake_input = torch.FloatTensor(*input_shape)
-    output_size = model.forward(fake_input).view(-1).size()[0]
-    return output_size
+    fake_input = tf.random.normal(input_shape)
+    output_size = model(fake_input)
+    return tf.reduce_prod(output_size.shape)
