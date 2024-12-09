@@ -1,3 +1,7 @@
+"""
+Code based on Python PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/pyhanabi/eval.py
+"""
+
 import time
 import numpy as np
 import tensorflow as tf
