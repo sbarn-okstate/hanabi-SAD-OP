@@ -53,7 +53,7 @@ class HanabiEnv:
 
         prev_score = self.state.score()
 
-        # Perform action for only current player
+        #Perform action for only current player
         cur_player = self.state.cur_player()
         action_uid = action['a'][cur_player].numpy()
         move = self.game.get_move(action_uid)
@@ -74,13 +74,13 @@ class HanabiEnv:
         terminal = self.state.is_terminal()
         reward = self.state.score() - prev_score
 
-        # Forced termination, lose all points
+        #Forced termination, lose all points
         if self.max_len > 0 and self.num_step == self.max_len:
             terminal = True
             reward = -prev_score
 
         if not terminal:
-            # Chance player
+            #Chance player
             while self.state.cur_player == -1: #HanabiLearningEnv.kChancePlayerId: <- constexpr = -1
                 self.state.apply_random_chance()
 
