@@ -1,3 +1,7 @@
+"""
+Code based on Python PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/pyhanabi/hanabi_env.py
+"""
+
 import numpy as np
 import tensorflow as tf
 from hanabi_learning_environment import pyhanabi
