@@ -72,19 +72,19 @@ def evaluate_saved_model(
         output_dim = game_info["num_action"]
         hid_dim = 512
 
-        # Initialize TensorFlow R2D2 agent
+        #Initialize TensorFlow R2D2 agent
         actor = iql_r2d2.R2D2Agent(1, 0.99, 0.9, device, input_dim, hid_dim, output_dim)
 
-        # Load saved weights
+        #Load saved weights
         state_dict = tf.saved_model.load(weight_file)
         if "pred.weight" in state_dict:
             del state_dict["pred.bias"]
             del state_dict["pred.weight"]
 
-        # Assuming the TensorFlow equivalent of load_state_dict is a weight assignment
+        #Assuming the TensorFlow equivalent of load_state_dict is a weight assignment
         actor.online_net.set_weights([state_dict[key] for key in actor.online_net.trainable_variables])
 
-        # Add the model to lockers
+        #Add the model to lockers, although I don't think we need this because tensorflow should handle model locking
         model_lockers.append(utils.ModelLocker([actor], device))
 
     scores = []
