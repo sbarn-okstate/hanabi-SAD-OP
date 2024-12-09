@@ -1,3 +1,7 @@
+"""
+Code based on C++ PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/rela/thread_loop.h
+"""
+
 import threading
 
 class ThreadLoop:
