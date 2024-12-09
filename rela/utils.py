@@ -1,7 +1,9 @@
+"""
+Code based on C++ PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/rela/utils.h
+"""
+
 import tensorflow as tf
 import numpy as np
-
-# Utility functions
 
 def get_product(nums):
     prod = 1
