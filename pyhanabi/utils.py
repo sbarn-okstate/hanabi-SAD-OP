@@ -5,7 +5,7 @@ Code based on Python PyTorch code from https://github.com/codeaudit/hanabi_SAD/b
 import time
 import tensorflow as tf
 import numpy as np
-from create_envs import *  # Placeholder for environment setup utilities
+from create_envs import *
 from hanabi_env import *
 
 class Tachometer:
@@ -40,7 +40,7 @@ class Tachometer:
             f"Total Sample: train: {common_utils.num2str(self.num_train)}, act: {common_utils.num2str(self.num_act)}"
         )
 
-
+#Fairly certain this method is useless when using Tensorflow but for now it's a placeholder
 def to_device(batch, device):
     if isinstance(batch, tf.Tensor):
         return tf.convert_to_tensor(batch, dtype=device)
@@ -82,11 +82,9 @@ def compute_input_dim(num_player):
     card_knowledge = num_player * 5 * 35
     return hand + board + discard + last_action + card_knowledge
 
-
 def get_num_acts(actors):
     total_acts = sum(actor.num_act() for actor in actors)
     return total_acts
-
 
 def get_frame_stat(num_game_per_thread, time_elapsed, num_acts, num_buffer, frame_stat):
     total_sample = (num_acts - frame_stat["num_acts"]) * num_game_per_thread
@@ -95,7 +93,6 @@ def get_frame_stat(num_game_per_thread, time_elapsed, num_acts, num_buffer, fram
     frame_stat["num_acts"] = num_acts
     frame_stat["num_buffer"] = num_buffer
     return total_sample, act_rate, buffer_rate
-
 
 def generate_actor_eps(base_eps, alpha, num_actor):
     if num_actor == 1:
@@ -106,7 +103,6 @@ def generate_actor_eps(base_eps, alpha, num_actor):
         eps = base_eps ** (1 + i / (num_actor - 1) * alpha)
         eps_list.append(max(eps, 0))
     return eps_list
-
 
 @tf.function
 def get_v1(v0_joind, card_counts, ref_mask):
@@ -135,7 +131,6 @@ def get_v1(v0_joind, card_counts, ref_mask):
 
     return v1_new
 
-
 @tf.function
 def check_v1(v0, v1, card_counts, mask):
     ref_v1 = get_v1(v0, card_counts, mask)
@@ -144,7 +139,6 @@ def check_v1(v0, v1, card_counts, mask):
     diff = tf.reduce_max(tf.abs(ref_v1 - v1))
     print("diff: ", diff)
     tf.debugging.assert_less_equal(diff, 1e-4, "V1 check failed")
-
 
 def check_trajectory(batch):
     assert tf.reduce_sum(batch.obs["h"][0][0]) == 0
