@@ -1,3 +1,6 @@
+"""
+Code based on C++ PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/rela/actor.h
+"""
 from abc import ABC, abstractmethod
 import numpy as np
 
