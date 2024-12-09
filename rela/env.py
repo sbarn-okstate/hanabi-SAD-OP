@@ -48,10 +48,10 @@ class VectorEnv:
                 obs = env.reset()
                 batch_obs.append(obs)
             else:
-                # Use the provided input for the environment that is not terminated
+                #Use the provided input for the environment
                 batch_obs.append({key: value[i] for key, value in input_tensor_dict.items()})
 
-        # Combine the batch of observations
+        #Combine the batch of observations
         return self.tensor_dict_join(batch_obs)
 
     def step(self, action: Dict[str, tf.Tensor]) -> Tuple[Dict[str, tf.Tensor], tf.Tensor, tf.Tensor]:
@@ -72,7 +72,7 @@ class VectorEnv:
             batch_terminal = batch_terminal.numpy()
             batch_terminal[i] = terminal
 
-        # Combine the batch of observations
+        #Combine the batch of observations
         return self.tensor_dict_join(batch_obs), batch_reward, batch_terminal
 
     def any_terminated(self) -> bool:
@@ -92,48 +92,3 @@ class VectorEnv:
         for key in batch[0].keys():
             joined_dict[key] = tf.concat([obs[key] for obs in batch], axis=0)
         return joined_dict
-
-
-# Example subclass of Env for demonstration
-class DummyEnv(Env):
-    def __init__(self, size: int = 10):
-        super().__init__()
-        self.size = size
-        self.steps = 0
-
-    def reset(self) -> Dict[str, tf.Tensor]:
-        self.steps = 0
-        return {'obs': tf.random.normal([self.size])}
-
-    def step(self, action: Dict[str, tf.Tensor]) -> Tuple[Dict[str, tf.Tensor], float, bool]:
-        self.steps += 1
-        reward = tf.reduce_sum(action['action'])  # Dummy reward: sum of action tensor
-        terminal = self.steps >= 5  # Dummy condition for terminal state
-        obs = tf.random.normal([self.size])
-        return {'obs': obs}, reward, terminal
-
-    def terminated(self) -> bool:
-        return self.steps >= 5
-
-
-# Example usage of VectorEnv with DummyEnv
-if __name__ == "__main__":
-    # Create a vector environment with 3 environments
-    vector_env = VectorEnv()
-    for _ in range(3):
-        vector_env.append(DummyEnv())
-
-    # Reset the environments
-    initial_obs = vector_env.reset({0: tf.random.normal([10]), 1: tf.random.normal([10]), 2: tf.random.normal([10])})
-    print("Initial observations:", initial_obs)
-
-    # Step through the environments with dummy actions
-    actions = {0: tf.random.normal([10]), 1: tf.random.normal([10]), 2: tf.random.normal([10])}
-    batch_obs, batch_reward, batch_terminal = vector_env.step(actions)
-    print("Batch observations:", batch_obs)
-    print("Batch rewards:", batch_reward)
-    print("Batch terminal states:", batch_terminal)
-
-    # Check termination status
-    print("Any terminated:", vector_env.any_terminated())
-    print("All terminated:", vector_env.all_terminated())
