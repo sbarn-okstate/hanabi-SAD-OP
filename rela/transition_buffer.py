@@ -1,3 +1,7 @@
+"""
+Code based on C++ PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/rela/dqn_actor.h
+"""
+
 import tensorflow as tf
 import numpy as np
 from collections import deque
@@ -48,7 +52,7 @@ class MultiStepTransitionBuffer:
         bootstrap = np.ones(self.batch_size)
         next_obs_indices = np.zeros(self.batch_size, dtype=int)
 
-        # Calculate bootstrap and next state indices
+        #Calculate bootstrap and next state indices
         for i in range(self.batch_size):
             for step in range(self.multi_step):
                 if self.terminal_history[step][i]:
@@ -58,7 +62,7 @@ class MultiStepTransitionBuffer:
             if bootstrap[i] > 1e-6:
                 next_obs_indices[i] = self.multi_step
 
-        # Calculate discounted rewards
+        #Calculate discounted rewards
         reward = np.zeros_like(self.reward_history[0])
         for i in range(self.batch_size):
             initial = self.multi_step - 1 if bootstrap[i] else next_obs_indices[i]
@@ -88,10 +92,9 @@ class DQNActor:
         return self.num_act
 
     def act(self, obs):
-        # Assuming obs is a dict of tensors
         input_obs = self.tensor_dict_to_tensor(obs)
 
-        # Get model and perform action
+        #Get model and perform action
         model = self.model_locker.get_model()
         action = model(input_obs)
 
@@ -115,7 +118,7 @@ class DQNActor:
         self.replay_buffer.add((obs, action, reward, terminal, bootstrap, next_obs), priority)
 
     def compute_priority(self, obs, action, reward, terminal, next_obs):
-        # Convert observations and actions to TensorFlow tensors and use the model to compute priority
+        #Convert observations and actions to TensorFlow tensors and use the model to compute priority
         input_data = {
             'obs': tf.convert_to_tensor(obs),
             'action': tf.convert_to_tensor(action),
@@ -128,10 +131,10 @@ class DQNActor:
         return priority
 
     def tensor_dict_to_tensor(self, tensor_dict):
-        # Convert a dictionary of tensors to a single tensor for the model input
+        #Convert a dictionary of tensors to a single tensor for the model input
         return tf.stack([tensor_dict[key] for key in sorted(tensor_dict.keys())])
 
-# Model Locker class as placeholder for TensorFlow model management
+#Tensorflow manages models across threads so we don't need this but for now its just a placeholder
 class ModelLocker:
     def __init__(self, model):
         self.model = model
@@ -141,37 +144,3 @@ class ModelLocker:
 
     def release_model(self):
         pass
-
-# Simple ReplayBuffer for demonstration purposes
-class ReplayBuffer:
-    def __init__(self, capacity):
-        self.buffer = deque(maxlen=capacity)
-
-    def add(self, sample, priority):
-        self.buffer.append((sample, priority))
-
-# Example of usage
-if __name__ == "__main__":
-    # Define a simple dummy model using TensorFlow
-    class DummyModel(tf.keras.Model):
-        def __init__(self):
-            super(DummyModel, self).__init__()
-
-        def call(self, inputs):
-            return tf.random.normal([inputs.shape[0], 4])  # Random action logits
-
-        def compute_priority(self, inputs):
-            return tf.reduce_sum(inputs['reward'])  # Dummy priority computation
-
-    # Create model locker with dummy model
-    model_locker = ModelLocker(DummyModel())
-
-    # Create DQN Actor with dummy model
-    actor = DQNActor(model_locker, multi_step=5, batch_size=32, gamma=0.99, replay_buffer=ReplayBuffer(100))
-
-    # Sample observation (example)
-    obs = {'state': tf.random.normal([32, 84, 84, 3])}
-
-    # Perform action
-    action = actor.act(obs)
-    print("Action:", action)
