@@ -6,6 +6,7 @@ https://github.com/codeaudit/hanabi_SAD/blob/master/rela/types.cc
 
 import tensorflow as tf
 
+#This class is a rudimentary placeholder for the FFTransition and RNNTransition classes which we haven't been able to implement
 class Transition:
     def __init__(self, obs, action, reward, terminal, bootstrap, next_obs):
         self.obs = obs
