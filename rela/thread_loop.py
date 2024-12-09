@@ -9,33 +9,33 @@ class ThreadLoop:
         self._terminated = False
         self._paused = False
         self._pause_event = threading.Event()
-        self._pause_event.set()  # Initially, not paused.
+        self._pause_event.set()  #Inits to not paused
 
     def terminate(self):
         self._terminated = True
 
     def pause(self):
-        """Pauses the thread."""
+        #Pauses the thread
         self._paused = True
-        self._pause_event.clear()  # Clear the event to block execution.
+        self._pause_event.clear()
 
     def resume(self):
-        """Resumes the thread."""
+        #Resumes the thread
         self._paused = False
-        self._pause_event.set()  # Set the event to allow the thread to continue.
+        self._pause_event.set()
 
     def wait_until_resume(self):
-        """Blocks the thread until it's resumed."""
-        self._pause_event.wait()  # Wait until the event is set (resumed).
+        #Blocks the thread until it's resumed
+        self._pause_event.wait()
 
     def terminated(self):
-        """Returns whether the loop is terminated."""
+        #Returns whether the loop is terminated
         return self._terminated
 
     def paused(self):
-        """Returns whether the loop is paused."""
+        #Returns whether the loop is paused
         return self._paused
 
     def main_loop(self):
-        """Main loop to be overridden in the subclasses."""
+        #Main loop to be overridden in the subclasses
         raise NotImplementedError("Subclasses must implement `main_loop`.")
