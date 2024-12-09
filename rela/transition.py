@@ -1,3 +1,9 @@
+"""
+Code based on C++ PyTorch code from the following files:
+https://github.com/codeaudit/hanabi_SAD/blob/master/rela/types.h
+https://github.com/codeaudit/hanabi_SAD/blob/master/rela/types.cc
+"""
+
 import tensorflow as tf
 
 class Transition:
