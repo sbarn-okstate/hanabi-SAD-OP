@@ -1,9 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-#
 import tensorflow as tf
 from tensorflow.keras import layers
 import numpy as np
@@ -16,13 +10,13 @@ class R2D2Net(tf.keras.Model):
         self.out_dim = out_dim
         self.num_lstm_layers = num_lstm_layers
 
-        # Network architecture
+        #Network architecture
         self.net = tf.keras.Sequential([
             layers.Dense(self.hid_dim, activation='relu')
         ])
         self.lstm_layers = []
         for i in range(self.num_lstm_layers):
-            return_sequences = i < self.num_lstm_layers - 1  # True for all but last layer
+            return_sequences = i < self.num_lstm_layers - 1  #True for all but last layer
             self.lstm_layers.append(tf.keras.layers.LSTM(
                 self.hid_dim, return_state=True, return_sequences=return_sequences
             ))
@@ -33,7 +27,7 @@ class R2D2Net(tf.keras.Model):
         self.fc_a = layers.Dense(self.out_dim)
 
     def get_h0(self, batch_size):
-        # Initialize LSTM hidden states (h0, c0)
+        #Initialize LSTM hidden states (h0, c0)
         shape = (self.num_lstm_layers, batch_size, self.hid_dim)
         return {
             "h0": tf.zeros(shape, dtype=tf.float32),
@@ -48,7 +42,7 @@ class R2D2Net(tf.keras.Model):
     @tf.function
     def act(self, s, legal_move, hid):
         assert len(s.shape) == 2, f"should be 2 [batch, dim], get {len(s.shape)}"
-        s = tf.expand_dims(s, axis=0)  # Add sequence dimension
+        s = tf.expand_dims(s, axis=0)  #Adding sequence dimension
         o = self.net(s)
         for i in range(self.num_lstm_layers):
           o, h, c = self.lstm_layers[i](o, initial_state=[hid["h0"][i], hid["c0"][i]])
@@ -90,8 +84,6 @@ class R2D2Agent(tf.keras.Model):
         self.multi_step = multi_step
         self.gamma = gamma
         self.eta = eta
-
-        # Online and Target Networks
         self.online_net = R2D2Net(in_dim, hid_dim, out_dim)
         self.target_net = R2D2Net(in_dim, hid_dim, out_dim)
 
@@ -140,7 +132,7 @@ class R2D2Agent(tf.keras.Model):
         tf.debugging.assert_equal(tf.shape(rand), tf.shape(eps), message="Shapes of rand and eps do not match")
         rand = tf.cast(rand < eps, tf.int32)
 
-        # Combine greedy and random actions based on the random decision
+        #Combine greedy and random actions based on the random decision
         action = tf.cast(greedy_action, tf.int32) * (1 - rand) + tf.cast(random_action, tf.int32) * rand
         action = tf.reshape(action, [obs["s"].shape[0], -1])
         
@@ -153,13 +145,13 @@ class R2D2Agent(tf.keras.Model):
         """
         Compute priority for a batch.
         """
-        s = tf.expand_dims(obs["s"], axis=0)  # Add sequence dimension
+        s = tf.expand_dims(obs["s"], axis=0)  #Addingequence dimension
         legal_move = tf.expand_dims(obs["legal_move"], axis=0)
         action = tf.expand_dims(action["a"], axis=0)
 
         online_q = self.online_net(s, legal_move, action, hid)[0]
 
-        # Compute next_q with double Q-learning
+        #Compute next_q with double Q-learning
         next_s = next_obs["s"]
         next_legal_move = next_obs["legal_move"]
         online_next_a, _ = self.greedy_act(
