@@ -17,7 +17,7 @@ class HanabiVDNThreadLoop(ThreadLoop):
         self.env = env
         self.eval = eval
         if self.eval:
-            assert len(self.env) == 1  # Eval only works for a single environment.
+            assert len(self.env) == 1  #Eval only works for a single environment.
 
     def main_loop(self):
         obs = {}
@@ -31,18 +31,18 @@ class HanabiVDNThreadLoop(ThreadLoop):
                 if self.paused():
                     self.wait_until_resume()
 
-                # Actor performs an action in the environment.
+                #Actor performs an action in the environment.
                 action = self.actor.act(obs)
                 obs, r, t = self.env.step(action)
 
                 if self.eval:
                     continue
 
-                # Set reward and terminal state for the actor.
+                #Set reward and terminal state for the actor.
                 self.actor.set_reward_and_terminal(r, t)
                 self.actor.post_step()
 
-            # In evaluation mode, only run for one game.
+            #In evaluation mode, only run for one game.
             if self.eval:
                 break
 
@@ -55,7 +55,7 @@ class HanabiIQLThreadLoop(ThreadLoop):
         self.eval = eval
         self.log_file = log_file
         if self.eval:
-            assert len(self.env) == 1  # Eval only works for a single environment.
+            assert len(self.env) == 1  #Eval only works for a single environment.
 
     def main_loop(self):
         if self.log_file:
@@ -75,7 +75,7 @@ class HanabiIQLThreadLoop(ThreadLoop):
                 actions = []
                 greedy_actions = []
 
-                # Process actions for each actor
+                #Processes actions for each actor
                 for i, actor in enumerate(self.actors):
                     input_data = self._narrow_tensor(obs, 1, i, 1, True)
 
@@ -103,14 +103,12 @@ class HanabiIQLThreadLoop(ThreadLoop):
                     actor.set_reward_and_terminal(r, t)
                     actor.post_step()
 
-            # Eval only runs for one game
+            #Evals only runs for one game
             if self.eval:
                 break
 
     def _narrow_tensor(self, obs, dim, start, size, squeeze=False):
-        # Simulate the narrowing operation on the tensor.
-        # This would slice the observation tensor appropriately
-        # For now, assume obs is a dictionary with tensors and return a subset of one.
+        #Placeholder for method implementation. Not sure if we need it when using Python
         return {key: value[start:start+size] for key, value in obs.items()}
 
     def _log_state(self, input_data):
