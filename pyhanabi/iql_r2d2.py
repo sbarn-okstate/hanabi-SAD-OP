@@ -6,6 +6,8 @@ import tensorflow as tf
 from tensorflow.keras import layers, Model
 import numpy as np
 
+#This IQL model was roughly translated from https://github.com/codeaudit/hanabi_SAD/blob/master/pyhanabi/iql_r2d2.py
+# but we haven't gone through and tested/updated the code to work correctly with tensorflow
 class R2D2Net(Model):
     def __init__(self, in_dim, hid_dim, out_dim, num_lstm_layers=2):
         super(R2D2Net, self).__init__()
@@ -46,10 +48,10 @@ class R2D2Net(Model):
         return q, {"h0": h, "c0": c}
 
     def act(self, s, legal_move, hid):
-        x = self.net(tf.expand_dims(s, axis=0))  # Add time dimension
+        x = self.net(tf.expand_dims(s, axis=0))  #Add time dimension
         o, h, c = self.lstm(x, initial_state=[hid["h0"], hid["c0"]])
         a = self.fc_a(o)
-        a = tf.squeeze(a, axis=0)  # Remove time dimension
+        a = tf.squeeze(a, axis=0)  #Remove time dimension
         return a, {"h0": h, "c0": c}
 
 
