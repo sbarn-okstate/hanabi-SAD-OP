@@ -1,9 +1,12 @@
+"""
+Code based on C++ PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/cpp/thread_loop.h
+"""
+
 import threading
 import numpy as np
 import logging
 from typing import List
 from rela.thread_loop import ThreadLoop
-# Assuming Actor and VectorEnv are defined elsewhere in the project.
 from rela.actor import Actor
 from rela.env import VectorEnv
 
