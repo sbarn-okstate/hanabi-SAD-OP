@@ -1,3 +1,7 @@
+"""
+Code based on Python PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/pyhanabi/vdn_r2d2.py
+"""
+
 import tensorflow as tf
 from tensorflow.keras import layers
 import numpy as np
