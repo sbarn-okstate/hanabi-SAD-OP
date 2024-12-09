@@ -15,9 +15,9 @@ class R2D2TransitionBuffer:
         self.multi_step = multi_step
         self.seq_len = seq_len
         self.batch_next_idx = [0] * batch_size
-        self.batch_h0 = [None] * batch_size  # Placeholder for h0
-        self.batch_seq_transition = [[None] * seq_len for _ in range(batch_size)]
-        self.batch_seq_priority = [[0.0] * seq_len for _ in range(batch_size)]
+        self.batch_h0 = [None] * batch_size  #Placeholder for h0
+        self.batch_seq_transition = [[None] * seq_len for _ in range(batch_size)] #Placeholder for FFTransition that hasn't been implemented yet
+        self.batch_seq_priority = [[0.0] * seq_len for _ in range(batch_size)] #Placeholder for RNNTransition that hasn't been implemented yet
         self.batch_len = [0] * batch_size
         self.can_pop = False
 
@@ -28,13 +28,12 @@ class R2D2TransitionBuffer:
             next_idx = self.batch_next_idx[i]
             assert 0 <= next_idx < self.seq_len
 
-            # (Optional) Simplification of h0 handling
             if next_idx == 0:
-                pass  # Placeholder for logic related to batch_h0[i]
+                pass  #Placeholder for batch_h0[i] logic
 
-            t = transition[i]  # Assume transition is a list or tensor
+            t = transition[i]
             if next_idx != 0:
-                # Ensure no transitions after terminal
+                #Ensure no transitions after terminal
                 assert not t['terminal']
                 assert self.batch_len[i] == 0
 
@@ -47,7 +46,7 @@ class R2D2TransitionBuffer:
 
             self.batch_len[i] = self.batch_next_idx[i]
             while self.batch_next_idx[i] < self.seq_len:
-                self.batch_seq_transition[i][self.batch_next_idx[i]] = t  # Pad with the last transition
+                self.batch_seq_transition[i][self.batch_next_idx[i]] = t  #Pad with the last transition
                 self.batch_seq_priority[i][self.batch_next_idx[i]] = 0
                 self.batch_next_idx[i] += 1
 
@@ -59,7 +58,7 @@ class R2D2TransitionBuffer:
     def pop_transition(self):
         assert self.can_pop
 
-        batch_transition = []
+        batch_transition = [] #Placehold for the RNN Transition that hasn't been implemented yet
         batch_seq_priority = []
         batch_len = []
 
@@ -72,8 +71,7 @@ class R2D2TransitionBuffer:
             batch_seq_priority.append(tf.convert_to_tensor(self.batch_seq_priority[i], dtype=tf.float32))
             batch_len.append(float(self.batch_len[i]))
 
-            # Create RNNTransition (equivalent)
-            t = {'sequence': self.batch_seq_transition[i], 'h0': self.batch_h0[i], 'length': float(self.batch_len[i])}
+            t = {'sequence': self.batch_seq_transition[i], 'h0': self.batch_h0[i], 'length': float(self.batch_len[i])} #again a placeholder for a RNNTransition
             batch_transition.append(t)
 
             self.batch_len[i] = 0
@@ -102,7 +100,7 @@ class R2D2Actor(Actor):
         return self.num_act
 
     def act(self, obs):
-        # Equivalent to NoGradGuard in PyTorch
+        #Equivalent to NoGradGuard in PyTorch
         assert self.hidden is not None
 
         if self.replay_buffer is not None:
@@ -111,15 +109,13 @@ class R2D2Actor(Actor):
         eps = tf.fill([self.batch_size, self.num_players], self.greedy_eps)
         obs["eps"] = eps
 
-        # Convert observation to input for model (TensorFlow equivalent of tensorDictToTorchDict)
- 
+        #Convert observation to input for model (TensorFlow equivalent of tensorDictToTorchDict)
         self.hidden["h0"] = tf.stop_gradient(self.hidden["h0"])
         obs["s"] = tf.stop_gradient(obs["s"])
         obs["legal_move"] = tf.stop_gradient(obs["legal_move"])
         obs["eps"] = tf.stop_gradient(obs["eps"])
         
         output = self.model_locker.get_model().act(obs, self.hidden)
-
         action = output[0]
         self.hidden = output[1]
 
@@ -135,7 +131,7 @@ class R2D2Actor(Actor):
 
         self.multi_step_buffer.push_reward_and_terminal(r, t)
 
-        # Reset hidden states for terminal states
+        #Reset hidden states for terminal states
         h0 = self.get_h0(1)
         terminal = t#.numpy()
 
@@ -152,7 +148,7 @@ class R2D2Actor(Actor):
             assert not self.r2d2_buffer.can_pop
             return
 
-        # Get transition and calculate priority
+        #Get transition and calculate priority
         transition = list(self.multi_step_buffer.pop_transition())
         hid = self.history_hidden[0]
         next_hid = self.history_hidden[-1]
@@ -167,7 +163,6 @@ class R2D2Actor(Actor):
             self.replay_buffer.add(batch, priority)
 
     def get_h0(self, batch_size):
-        # Placeholder for getting initial hidden state
         return self.model_locker.get_model().get_h0(batch_size)
 
     def compute_priority(self, transition, hid, next_hid):
