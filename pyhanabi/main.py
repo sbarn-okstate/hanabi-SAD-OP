@@ -10,33 +10,13 @@ import argparse
 import pprint
 import time
 
-# Placeholder imports for utility functions
 from utils import get_game_info, generate_actor_eps, Tachometer
 from rela import PrioritizedReplay
 import vdn_r2d2
 import iql_r2d2
-from create_envs import create_train_env, create_eval_env  # Environment setup and evaluation
-from eval import evaluate
-import rela
-
-"""
-import time
-import os
-import sys
-import argparse
-import pprint
-
-import numpy as np
-import torch
-
 from create_envs import create_train_env, create_eval_env
-import vdn_r2d2
-import iql_r2d2
-import common_utils
-import rela
 from eval import evaluate
-import utils
-"""
+import rela
 
 def parse_args():
     parser = argparse.ArgumentParser(description="train dqn on hanabi")
@@ -95,26 +75,24 @@ def parse_args():
 
 
 if __name__ == "__main__":
-        # Parse arguments (replace with your preferred argument parser)
     args = parse_args()
 
-    # Create directories
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    # Logger setup
+    #Logger setup
     logger_path = os.path.join(args.save_dir, "train.log")
     sys.stdout = common_utils.Logger(logger_path)
     saver = common_utils.TopkSaver(args.save_dir, 10)
 
-    # Set seeds for reproducibility
+    #Set seeds for reproducibility
     common_utils.set_all_seeds(args.seed)
     pprint.pprint(vars(args))
 
-    # Get game info
+    #Get game info
     game_info = get_game_info(args.num_player, args.greedy_extra)
 
-    # Initialize agent
+    #Initialize agent
     if args.method == "vdn":
         agent = R2D2Agent(
             args.multi_step,
@@ -134,10 +112,10 @@ if __name__ == "__main__":
             game_info["num_action"],
         )
 
-    # Optimizer
+    #Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, epsilon=args.eps)
 
-    # Replay buffer
+    #Replay buffer
     replay_buffer = PrioritizedReplay(
         capacity=args.replay_buffer_size,
         seed=args.seed,
@@ -146,10 +124,10 @@ if __name__ == "__main__":
         prefetch=args.prefetch
     )
 
-    # Actor epsilon values
+    #Actor epsilon values
     actor_eps = generate_actor_eps(args.act_base_eps, args.act_eps_alpha, args.num_thread)
 
-    # Create training environment
+    #Create training environment
     context, games, actors, threads = create_train_env(
         args.method,
         args.seed,
@@ -162,13 +140,21 @@ if __name__ == "__main__":
         args.greedy_extra,
     )
 
-    # Warm up replay buffer
+    #Warm up replay buffer
     context.start()
+    
+    #============================================================================
+    # We haven't been able to get the replay buffer running so this
+    # program will encounter errors if the following code is uncommented
+    #============================================================================
+    """
     while replay_buffer.size() < args.burn_in_frames:
         print("Warming up replay buffer:", replay_buffer.size())
         time.sleep(1)
-
-    # Training loop
+    """
+    
+    """
+    #Training loop
     tachometer = Tachometer()
     for epoch in range(args.num_epoch):
         print(f"Starting epoch {epoch}")
@@ -181,30 +167,31 @@ if __name__ == "__main__":
             if num_update % args.num_update_between_sync == 0:
                 agent.sync_target_with_online()
 
-            # Sample from replay buffer (PrioritizedReplay)
+            #Sample from replay buffer (PrioritizedReplay)
             batch, weights, sampledIds = replay_buffer.sample(args.batchsize, args.train_device)
             
             with tf.GradientTape() as tape:
                 loss, priorities = agent.loss(batch)
                 weighted_loss = tf.reduce_mean(loss * weights)
 
-            # Backpropagation
+            #Backpropagation
             grads = tape.gradient(weighted_loss, agent.trainable_variables)
             grads = [tf.clip_by_norm(g, args.grad_clip) for g in grads]
             optimizer.apply_gradients(zip(grads, agent.trainable_variables))
 
-            # Update priorities in replay buffer
+            #Update priorities in replay buffer
             replay_buffer.updatePriority(priorities.numpy())
 
             # Log statistics
             stat["loss"].feed(weighted_loss.numpy())
 
-        # Evaluate
+        #Evaluate
         context.pause()
         score, perfect = evaluate(agent, args.num_eval_games, args.seed, args.num_player)
         print(f"Epoch {epoch} evaluation: Score {score:.4f}, Perfect games {perfect:.2f}%")
 
-        # Save model
+        #Save model
         model_saved = saver.save(agent, score)
         print(f"Model saved: {model_saved}")
         context.resume()
+    """
