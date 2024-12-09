@@ -149,7 +149,7 @@ class R2D2Agent(tf.keras.Model):
         """
         Compute priority for a batch.
         """
-        s = tf.expand_dims(obs["s"], axis=0)  #Addingequence dimension
+        s = tf.expand_dims(obs["s"], axis=0)  #Addingsequence dimension
         legal_move = tf.expand_dims(obs["legal_move"], axis=0)
         action = tf.expand_dims(action["a"], axis=0)
 
@@ -204,9 +204,7 @@ class R2D2Agent(tf.keras.Model):
         return loss, priority
 
     def _err(self, obs, hid, action, reward, terminal, bootstrap, seq_len):
-        """
-        Compute temporal-difference error for the agent.
-        """
+        #Compute temporal-difference error for the agent.
         max_seq_len = obs["s"].shape[0]
 
         s = obs["s"]
