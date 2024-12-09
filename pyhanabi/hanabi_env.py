@@ -1,5 +1,5 @@
 """
-Code based on Python PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/pyhanabi/hanabi_env.py
+Code based on C++ PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/cpp/hanabi_env.h
 """
 
 import numpy as np
