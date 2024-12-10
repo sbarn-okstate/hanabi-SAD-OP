@@ -18,6 +18,10 @@ from create_envs import create_train_env, create_eval_env
 from eval import evaluate
 import rela
 
+
+#Note: parse args was taken directly from the main.py in the codeaudit/hanabi_SAD github.
+#      As such, not all args would be needed for our python w/ tensorflow implementation,
+#      however we kept them all in the meantime.
 def parse_args():
     parser = argparse.ArgumentParser(description="train dqn on hanabi")
     parser.add_argument("--save_dir", type=str, default="exps/exp1")
@@ -61,8 +65,8 @@ def parse_args():
     parser.add_argument("--prefetch", type=int, default=3, help="#prefetch batch")
 
     # thread setting
-    parser.add_argument("--num_thread", type=int, default=40, help="#thread_loop")
-    parser.add_argument("--num_game_per_thread", type=int, default=20)
+    parser.add_argument("--num_thread", type=int, default=1, help="#thread_loop") #default=40, changed to 1 for speed during debugging
+    parser.add_argument("--num_game_per_thread", type=int, default=1) #default=1, changed to 1 for speed during debugging 
 
     # actor setting
     parser.add_argument("--act_base_eps", type=float, default=0.4)
