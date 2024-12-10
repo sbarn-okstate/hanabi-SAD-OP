@@ -2,21 +2,28 @@
 Code based on Python PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/pyhanabi/main.py
 """
 
+from __future__ import print_function
+import sys
 import os
-import numpy as np
-import os
-import tensorflow as tf
-import argparse
-import pprint
-import time
 
-from utils import get_game_info, generate_actor_eps, Tachometer
-from rela import PrioritizedReplay
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+import numpy as np
+import pprint
+import utils
+from utils import *
+import argparse
+from hanabi_learning_environment import pyhanabi
+import common_utils
+from create_envs import *
 import vdn_r2d2
+from rela.prioritized_replay import *
 import iql_r2d2
-from create_envs import create_train_env, create_eval_env
-from eval import evaluate
-import rela
+from rela.transition_buffer import *
+from rela.r2d2_actor import *
 
 
 #Note: parse args was taken directly from the main.py in the codeaudit/hanabi_SAD github.
@@ -81,33 +88,27 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
+    # Create directories
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    #Logger setup
+    # Logger setup
     logger_path = os.path.join(args.save_dir, "train.log")
     sys.stdout = common_utils.Logger(logger_path)
     saver = common_utils.TopkSaver(args.save_dir, 10)
 
-    #Set seeds for reproducibility
     common_utils.set_all_seeds(args.seed)
     pprint.pprint(vars(args))
 
-    #Get game info
     game_info = get_game_info(args.num_player, args.greedy_extra)
 
-    #Initialize agent
     if args.method == "vdn":
-        agent = R2D2Agent(
-            args.multi_step,
-            args.gamma,
-            0.9,
-            game_info["input_dim"],
-            args.rnn_hid_dim,
-            game_info["num_action"],
-        )
-    elif args.method == "iql":
-        agent = R2D2Agent(
+        args.batchsize = int(np.round(args.batchsize / args.num_player))
+        args.replay_buffer_size //= args.num_player
+        args.burn_in_frames //= args.num_player
+
+    if args.method == "vdn":
+        agent = vdn_r2d2.R2D2Agent(
             args.multi_step,
             args.gamma,
             0.9,
@@ -116,10 +117,26 @@ if __name__ == "__main__":
             game_info["num_action"],
         )
 
-    #Optimizer
+    eval_agents = []
+    eval_lockers = []
+    for _ in range(args.num_player):
+        ea = iql_r2d2.R2D2Agent(
+            1,
+            0.99,
+            0.9,
+            game_info["input_dim"],
+            args.rnn_hid_dim,
+            game_info["num_action"],
+        )
+        locker = ModelLocker(ea)
+        eval_agents.append(ea)
+        eval_lockers.append(locker)
+
+    # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, epsilon=args.eps)
+    print(agent)
 
-    #Replay buffer
+    # Replay buffer
     replay_buffer = PrioritizedReplay(
         capacity=args.replay_buffer_size,
         seed=args.seed,
@@ -128,16 +145,41 @@ if __name__ == "__main__":
         prefetch=args.prefetch
     )
 
-    #Actor epsilon values
-    actor_eps = generate_actor_eps(args.act_base_eps, args.act_eps_alpha, args.num_thread)
+    ref_models = []
+    model_lockers = []
+    act_devices = args.act_device.split(",")
+    for act_device in act_devices:
+        ref_model = [agent.clone() for _ in range(3)]
+        ref_models.extend(ref_model)
+        model_locker = ModelLocker(ref_model[0])
+        model_lockers.append(model_locker)
 
-    #Create training environment
+    # Actor epsilon values
+    actor_eps = generate_actor_eps(args.act_base_eps, args.act_eps_alpha, args.num_thread)
+    print("actor eps", actor_eps)
+
+    if args.method == "vdn":
+        actor_cons = []
+        for _ in range(args.num_player):
+            actor_cons.append(
+                lambda thread_idx: R2D2Actor(
+                    model_lockers[thread_idx % len(model_lockers)],
+                    args.multi_step,
+                    args.num_game_per_thread,
+                    args.gamma,
+                    args.max_len,
+                    actor_eps[thread_idx],
+                    args.num_player,
+                    replay_buffer,
+                )
+            )
+    # Create training environment
     context, games, actors, threads = create_train_env(
         args.method,
         args.seed,
         args.num_thread,
         args.num_game_per_thread,
-        actor_eps,
+        actor_cons,
         args.max_len,
         args.num_player,
         args.train_bomb,
