@@ -185,15 +185,14 @@ if __name__ == "__main__":
         args.train_bomb,
         args.greedy_extra,
     )
-
-    #Warm up replay buffer
-    context.start()
     
     #============================================================================
     # We haven't been able to get the replay buffer running so this
     # program will encounter errors if the following code is uncommented
     #============================================================================
     """
+    #Warm up replay buffer
+    context.start()
     while replay_buffer.size() < args.burn_in_frames:
         print("Warming up replay buffer:", replay_buffer.size())
         time.sleep(1)
