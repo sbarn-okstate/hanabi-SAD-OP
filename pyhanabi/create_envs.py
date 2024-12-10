@@ -1,10 +1,8 @@
 """
 Code based on Python PyTorch code from https://github.com/codeaudit/hanabi_SAD/blob/master/pyhanabi/create_envs.py
 """
-
-#import set_path
-
-#set_path.append_sys_path()
+import set_path
+set_path.append_sys_path()
 
 import os
 import pprint
