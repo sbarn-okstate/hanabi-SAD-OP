@@ -186,15 +186,14 @@ if __name__ == "__main__":
         args.greedy_extra,
     )
 
-
+    print()
     print("End of __main__") 
     print("Check out https://github.com/codeaudit/hanabi_SAD/blob/master/pyhanabi/main.py for remainder of __main__")
     print()
     print("At this point in execution, the replay buffer would be warming up. i.e. generating experiences with our model and storing them.")
-    print("We were unable to get the replay buffer into a working state so we commented the remainder of __main__ to prevent errors from being thrown in google colab.")
+    print("We were unable to get the replay buffer into a working state so we commented out the remainder of __main__ to prevent errors from being thrown in google colab.")
     print()
-    print("Please check out our github for the code. As mentioned in the google colab, the requirements of the hanabi-learning-environment made it so we needed to put")
-    print("the majority of the code in the github instead of google colab.")
+    print("Please check out our github for the code, or run the below code blocks to print out the files. As mentioned in the google colab, the requirements of the hanabi-learning-environment made it so we needed to put the majority of the code in the github instead of google colab.")
     print("Our github: https://github.com/sbarn-okstate/hanabi-SAD-OP")
     #============================================================================
     # We haven't been able to get the replay buffer running so this
